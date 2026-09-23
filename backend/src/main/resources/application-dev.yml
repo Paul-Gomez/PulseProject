@@ -1,0 +1,8 @@
+logging:
+  level:
+    com.pulse: DEBUG
+    org.springframework.security: INFO
+
+spring:
+  jpa:
+    show-sql: true

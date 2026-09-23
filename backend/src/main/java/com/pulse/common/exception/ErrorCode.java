@@ -1,0 +1,13 @@
+package com.pulse.common.exception;
+
+public enum ErrorCode {
+    VALIDATION_ERROR,
+    EMAIL_ALREADY_IN_USE,
+    USERNAME_ALREADY_IN_USE,
+    INVALID_CREDENTIALS,
+    INVALID_REFRESH_TOKEN,
+    USER_NOT_FOUND,
+    ACCESS_DENIED,
+    RESOURCE_NOT_FOUND,
+    INTERNAL_ERROR
+}

@@ -1,0 +1,23 @@
+.env
+
+# Backend (Maven)
+backend/target/
+*.class
+
+# Frontend (Angular) - placeholder for future phases
+frontend/node_modules/
+frontend/dist/
+
+# Mobile (Ionic) - placeholder for future phases
+mobile/node_modules/
+mobile/www/
+mobile/dist/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
