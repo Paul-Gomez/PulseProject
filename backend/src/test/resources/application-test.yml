@@ -1,0 +1,10 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+
+pulse:
+  cors:
+    allowed-origins: http://localhost:4200
