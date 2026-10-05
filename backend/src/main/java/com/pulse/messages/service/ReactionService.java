@@ -7,9 +7,11 @@ import com.pulse.common.exception.ApiException;
 import com.pulse.common.exception.ErrorCode;
 import com.pulse.messages.entity.Message;
 import com.pulse.messages.entity.MessageReaction;
+import com.pulse.messages.event.ReactionChangedEvent;
 import com.pulse.messages.repository.MessageReactionRepository;
 import com.pulse.messages.repository.MessageRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +25,7 @@ public class ReactionService {
     private final ChannelRepository channelRepository;
     private final ChannelAccessService channelAccessService;
     private final MessageReactionRepository messageReactionRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public void add(UUID messageId, UUID userId, String emoji) {
@@ -40,6 +43,9 @@ public class ReactionService {
                 .userId(userId)
                 .emoji(emoji)
                 .build());
+
+        eventPublisher.publishEvent(
+                new ReactionChangedEvent(message.getChannelId(), message.getId(), userId, emoji, true));
     }
 
     @Transactional
@@ -47,7 +53,11 @@ public class ReactionService {
         Message message = requireAccessibleMessage(messageId, userId);
 
         messageReactionRepository.findByMessageIdAndUserIdAndEmoji(message.getId(), userId, emoji)
-                .ifPresent(messageReactionRepository::delete);
+                .ifPresent(reaction -> {
+                    messageReactionRepository.delete(reaction);
+                    eventPublisher.publishEvent(
+                            new ReactionChangedEvent(message.getChannelId(), message.getId(), userId, emoji, false));
+                });
     }
 
     private Message requireAccessibleMessage(UUID messageId, UUID userId) {

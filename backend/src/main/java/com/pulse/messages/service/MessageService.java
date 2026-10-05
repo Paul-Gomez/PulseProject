@@ -10,10 +10,14 @@ import com.pulse.messages.dto.EditMessageRequest;
 import com.pulse.messages.dto.MessageResponse;
 import com.pulse.messages.dto.SendMessageRequest;
 import com.pulse.messages.entity.Message;
+import com.pulse.messages.event.MessageCreatedEvent;
+import com.pulse.messages.event.MessageDeletedEvent;
+import com.pulse.messages.event.MessageUpdatedEvent;
 import com.pulse.messages.mapper.MessageMapper;
 import com.pulse.messages.repository.MessageRepository;
 import com.pulse.workspaces.service.WorkspaceAuthorizationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +35,7 @@ public class MessageService {
     private final WorkspaceAuthorizationService workspaceAuthorizationService;
     private final MessageMapper messageMapper;
     private final MentionService mentionService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public MessageResponse send(UUID channelId, UUID authorId, SendMessageRequest request) {
@@ -55,7 +60,9 @@ public class MessageService {
 
         mentionService.processMentions(message.getId(), message.getContent());
 
-        return messageMapper.toResponse(message);
+        MessageResponse response = messageMapper.toResponse(message);
+        eventPublisher.publishEvent(new MessageCreatedEvent(response));
+        return response;
     }
 
     public PageResponse<MessageResponse> list(UUID channelId, UUID requesterId, Pageable pageable) {
@@ -76,7 +83,9 @@ public class MessageService {
         message.setEditedAt(Instant.now());
         message = messageRepository.save(message);
 
-        return messageMapper.toResponse(message);
+        MessageResponse response = messageMapper.toResponse(message);
+        eventPublisher.publishEvent(new MessageUpdatedEvent(response));
+        return response;
     }
 
     @Transactional
@@ -95,6 +104,8 @@ public class MessageService {
 
         message.setDeletedAt(Instant.now());
         messageRepository.save(message);
+
+        eventPublisher.publishEvent(new MessageDeletedEvent(message.getChannelId(), message.getId()));
     }
 
     private Message findMessageOrThrow(UUID messageId) {
