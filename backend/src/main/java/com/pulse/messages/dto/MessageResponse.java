@@ -1,6 +1,9 @@
 package com.pulse.messages.dto;
 
+import com.pulse.files.dto.AttachmentResponse;
+
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 public record MessageResponse(
@@ -11,6 +14,11 @@ public record MessageResponse(
         UUID parentMessageId,
         Instant editedAt,
         Instant deletedAt,
-        Instant createdAt
+        Instant createdAt,
+        List<AttachmentResponse> attachments
 ) {
+    public MessageResponse withAttachments(List<AttachmentResponse> newAttachments) {
+        return new MessageResponse(id, channelId, authorId, content, parentMessageId,
+                editedAt, deletedAt, createdAt, newAttachments);
+    }
 }

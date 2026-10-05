@@ -6,6 +6,8 @@ import com.pulse.channels.service.ChannelAccessService;
 import com.pulse.common.exception.ApiException;
 import com.pulse.common.exception.ErrorCode;
 import com.pulse.common.pagination.PageResponse;
+import com.pulse.files.dto.AttachmentResponse;
+import com.pulse.files.service.AttachmentService;
 import com.pulse.messages.dto.EditMessageRequest;
 import com.pulse.messages.dto.MessageResponse;
 import com.pulse.messages.dto.SendMessageRequest;
@@ -23,6 +25,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -35,6 +39,7 @@ public class MessageService {
     private final WorkspaceAuthorizationService workspaceAuthorizationService;
     private final MessageMapper messageMapper;
     private final MentionService mentionService;
+    private final AttachmentService attachmentService;
     private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
@@ -59,8 +64,10 @@ public class MessageService {
         message = messageRepository.save(message);
 
         mentionService.processMentions(message.getId(), message.getContent());
+        List<AttachmentResponse> attachments = attachmentService.attachToMessage(
+                message.getId(), channelId, authorId, request.attachmentIds());
 
-        MessageResponse response = messageMapper.toResponse(message);
+        MessageResponse response = messageMapper.toResponse(message).withAttachments(attachments);
         eventPublisher.publishEvent(new MessageCreatedEvent(response));
         return response;
     }
@@ -70,7 +77,11 @@ public class MessageService {
         channelAccessService.requireAccess(channel, requesterId);
 
         var page = messageRepository.findAllByChannelIdAndDeletedAtIsNullOrderByCreatedAtDesc(channelId, pageable);
-        return PageResponse.from(page, messageMapper::toResponse);
+        List<UUID> messageIds = page.getContent().stream().map(Message::getId).toList();
+        Map<UUID, List<AttachmentResponse>> attachments = attachmentService.findForMessages(messageIds);
+
+        return PageResponse.from(page, message ->
+                messageMapper.toResponse(message).withAttachments(attachments.getOrDefault(message.getId(), List.of())));
     }
 
     @Transactional
@@ -90,7 +101,9 @@ public class MessageService {
         message.setEditedAt(Instant.now());
         message = messageRepository.save(message);
 
-        MessageResponse response = messageMapper.toResponse(message);
+        List<AttachmentResponse> attachments = attachmentService.findForMessages(List.of(message.getId()))
+                .getOrDefault(message.getId(), List.of());
+        MessageResponse response = messageMapper.toResponse(message).withAttachments(attachments);
         eventPublisher.publishEvent(new MessageUpdatedEvent(response));
         return response;
     }
@@ -111,6 +124,7 @@ public class MessageService {
 
         message.setDeletedAt(Instant.now());
         messageRepository.save(message);
+        attachmentService.deleteForMessage(message.getId());
 
         eventPublisher.publishEvent(new MessageDeletedEvent(message.getChannelId(), message.getId()));
     }
