@@ -25,12 +25,13 @@ public class WorkspaceAuthorizationService {
                 .orElseThrow(() -> ApiException.forbidden(ErrorCode.ACCESS_DENIED, "Not a member of this workspace"));
     }
 
-    public void requirePermission(UUID workspaceId, UUID userId, String permissionCode) {
+    public WorkspaceMember requirePermission(UUID workspaceId, UUID userId, String permissionCode) {
         WorkspaceMember member = requireMembership(workspaceId, userId);
         if (!member.getRole().hasPermission(permissionCode)) {
             throw ApiException.forbidden(ErrorCode.ACCESS_DENIED,
                     "Missing permission " + permissionCode + " in this workspace");
         }
+        return member;
     }
 
     public boolean isMember(UUID workspaceId, UUID userId) {

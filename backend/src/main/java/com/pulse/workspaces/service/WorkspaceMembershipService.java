@@ -68,7 +68,7 @@ public class WorkspaceMembershipService {
 
     @Transactional
     public MemberResponse updateRole(UUID workspaceId, UUID requesterId, UUID targetUserId, UpdateMemberRoleRequest request) {
-        authorizationService.requirePermission(workspaceId, requesterId, "MEMBER_MANAGE_ROLES");
+        WorkspaceMember actor = authorizationService.requirePermission(workspaceId, requesterId, "MEMBER_MANAGE_ROLES");
 
         WorkspaceMember member = workspaceMemberRepository.findByWorkspaceIdAndUserId(workspaceId, targetUserId)
                 .orElseThrow(() -> ApiException.notFound(ErrorCode.RESOURCE_NOT_FOUND, "Member not found"));
@@ -76,16 +76,28 @@ public class WorkspaceMembershipService {
         Role newRole = roleRepository.findByName(request.roleName())
                 .orElseThrow(() -> ApiException.notFound(ErrorCode.RESOURCE_NOT_FOUND, "Role not found"));
 
+        String actorRole = actor.getRole().getName();
+        if (!RoleHierarchy.outranks(actorRole, member.getRole().getName())) {
+            throw ApiException.forbidden(ErrorCode.ACCESS_DENIED, "You cannot manage a member with an equal or higher role");
+        }
+        if (!RoleHierarchy.outranks(actorRole, newRole.getName())) {
+            throw ApiException.forbidden(ErrorCode.ACCESS_DENIED, "You cannot assign a role equal to or higher than your own");
+        }
+
         member.setRole(newRole);
         return memberMapper.toResponse(workspaceMemberRepository.save(member));
     }
 
     @Transactional
     public void remove(UUID workspaceId, UUID requesterId, UUID targetUserId) {
-        authorizationService.requirePermission(workspaceId, requesterId, "MEMBER_REMOVE");
+        WorkspaceMember actor = authorizationService.requirePermission(workspaceId, requesterId, "MEMBER_REMOVE");
 
         WorkspaceMember member = workspaceMemberRepository.findByWorkspaceIdAndUserId(workspaceId, targetUserId)
                 .orElseThrow(() -> ApiException.notFound(ErrorCode.RESOURCE_NOT_FOUND, "Member not found"));
+
+        if (!RoleHierarchy.outranks(actor.getRole().getName(), member.getRole().getName())) {
+            throw ApiException.forbidden(ErrorCode.ACCESS_DENIED, "You cannot remove a member with an equal or higher role");
+        }
 
         workspaceMemberRepository.delete(member);
     }
