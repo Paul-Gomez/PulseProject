@@ -36,6 +36,10 @@ public class WorkspaceMembershipService {
         var invitedUser = userRepository.findByEmail(request.email())
                 .orElseThrow(() -> ApiException.notFound(ErrorCode.USER_NOT_FOUND, "User not found"));
 
+        if (workspaceMemberRepository.existsByWorkspaceIdAndUserId(workspaceId, invitedUser.getId())) {
+            throw ApiException.conflict(ErrorCode.MEMBER_ALREADY_EXISTS, "User is already a member of this workspace");
+        }
+
         Role memberRole = roleRepository.findByName("MEMBER")
                 .orElseThrow(() -> new IllegalStateException("MEMBER role not seeded"));
 
