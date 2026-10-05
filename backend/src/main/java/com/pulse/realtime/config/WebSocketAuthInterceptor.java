@@ -33,6 +33,7 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
     private static final String CHANNEL_TOPIC_PREFIX = "/topic/channel.";
     private static final String WORKSPACE_TOPIC_PREFIX = "/topic/workspace.";
     private static final String PRESENCE_SUFFIX = ".presence";
+    private static final String USER_TOPIC_PREFIX = "/topic/user.";
 
     private final JwtService jwtService;
     private final UserRepository userRepository;
@@ -91,6 +92,11 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
                 String id = destination.substring(WORKSPACE_TOPIC_PREFIX.length(),
                         destination.length() - PRESENCE_SUFFIX.length());
                 workspaceAuthorizationService.requireMembership(UUID.fromString(id), userId);
+            } else if (destination.startsWith(USER_TOPIC_PREFIX)) {
+                UUID ownerId = UUID.fromString(destination.substring(USER_TOPIC_PREFIX.length()));
+                if (!ownerId.equals(userId)) {
+                    throw new MessageDeliveryException("Subscription not allowed: " + destination);
+                }
             } else if (destination.startsWith("/topic/")) {
                 throw new MessageDeliveryException("Subscription not allowed: " + destination);
             }
