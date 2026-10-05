@@ -79,6 +79,13 @@ public class MessageService {
         Channel channel = findChannelOrThrow(message.getChannelId());
         channelAccessService.requireAccess(channel, requesterId);
 
+        if (message.isDeleted()) {
+            throw ApiException.notFound(ErrorCode.RESOURCE_NOT_FOUND, "Message not found");
+        }
+        if (!message.getAuthorId().equals(requesterId)) {
+            throw ApiException.forbidden(ErrorCode.ACCESS_DENIED, "Only the author can edit a message");
+        }
+
         message.setContent(request.content());
         message.setEditedAt(Instant.now());
         message = messageRepository.save(message);
