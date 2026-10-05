@@ -6,6 +6,7 @@ import com.pulse.channels.service.ChannelAccessService;
 import com.pulse.common.exception.ApiException;
 import com.pulse.common.security.JwtService;
 import com.pulse.common.security.PulseUserDetails;
+import com.pulse.conversations.service.ConversationAccessService;
 import com.pulse.users.repository.UserRepository;
 import com.pulse.workspaces.service.WorkspaceAuthorizationService;
 import lombok.RequiredArgsConstructor;
@@ -34,12 +35,14 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
     private static final String WORKSPACE_TOPIC_PREFIX = "/topic/workspace.";
     private static final String PRESENCE_SUFFIX = ".presence";
     private static final String USER_TOPIC_PREFIX = "/topic/user.";
+    private static final String CONVERSATION_TOPIC_PREFIX = "/topic/conversation.";
 
     private final JwtService jwtService;
     private final UserRepository userRepository;
     private final ChannelRepository channelRepository;
     private final ChannelAccessService channelAccessService;
     private final WorkspaceAuthorizationService workspaceAuthorizationService;
+    private final ConversationAccessService conversationAccessService;
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
@@ -92,6 +95,9 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
                 String id = destination.substring(WORKSPACE_TOPIC_PREFIX.length(),
                         destination.length() - PRESENCE_SUFFIX.length());
                 workspaceAuthorizationService.requireMembership(UUID.fromString(id), userId);
+            } else if (destination.startsWith(CONVERSATION_TOPIC_PREFIX)) {
+                conversationAccessService.requireMember(
+                        UUID.fromString(destination.substring(CONVERSATION_TOPIC_PREFIX.length())), userId);
             } else if (destination.startsWith(USER_TOPIC_PREFIX)) {
                 UUID ownerId = UUID.fromString(destination.substring(USER_TOPIC_PREFIX.length()));
                 if (!ownerId.equals(userId)) {

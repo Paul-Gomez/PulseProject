@@ -18,6 +18,10 @@ public class RealtimePublisher {
         messagingTemplate.convertAndSend("/topic/channel." + channelId, new RealtimeEvent<>(type, payload));
     }
 
+    public <T> void toConversation(UUID conversationId, RealtimeEventType type, T payload) {
+        messagingTemplate.convertAndSend("/topic/conversation." + conversationId, new RealtimeEvent<>(type, payload));
+    }
+
     /** Private per-user topic; the WebSocket interceptor only lets a user subscribe to their own. */
     public <T> void toUser(UUID userId, RealtimeEventType type, T payload) {
         messagingTemplate.convertAndSend("/topic/user." + userId, new RealtimeEvent<>(type, payload));

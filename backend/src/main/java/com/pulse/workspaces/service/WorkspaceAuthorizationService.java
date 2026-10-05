@@ -38,6 +38,10 @@ public class WorkspaceAuthorizationService {
         return workspaceMemberRepository.existsByWorkspaceIdAndUserId(workspaceId, userId);
     }
 
+    public boolean shareWorkspace(UUID userA, UUID userB) {
+        return workspaceMemberRepository.shareWorkspace(userA, userB);
+    }
+
     public boolean hasPermission(UUID workspaceId, UUID userId, String permissionCode) {
         return workspaceMemberRepository.findByWorkspaceIdAndUserId(workspaceId, userId)
                 .map(member -> member.getRole().hasPermission(permissionCode))
