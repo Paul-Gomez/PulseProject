@@ -17,6 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -56,6 +57,13 @@ public class WorkspaceMembershipService {
         authorizationService.requireMembership(workspaceId, requesterId);
         var page = workspaceMemberRepository.findAllByWorkspaceId(workspaceId, pageable);
         return PageResponse.from(page, memberMapper::toResponse);
+    }
+
+    public List<UUID> listMemberUserIds(UUID workspaceId, UUID requesterId) {
+        authorizationService.requireMembership(workspaceId, requesterId);
+        return workspaceMemberRepository.findAllByWorkspaceId(workspaceId, Pageable.unpaged())
+                .map(WorkspaceMember::getUserId)
+                .getContent();
     }
 
     @Transactional

@@ -20,6 +20,7 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.web.socket.WebSocketHttpHeaders;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
+import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -45,8 +46,13 @@ class WebSocketIT {
             .withUsername("pulse")
             .withPassword("pulse");
 
+    @Container
+    static final GenericContainer<?> REDIS = new GenericContainer<>("redis:7-alpine").withExposedPorts(6379);
+
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.data.redis.host", REDIS::getHost);
+        registry.add("spring.data.redis.port", () -> REDIS.getMappedPort(6379));
         registry.add("spring.datasource.url", POSTGRES::getJdbcUrl);
         registry.add("spring.datasource.username", POSTGRES::getUsername);
         registry.add("spring.datasource.password", POSTGRES::getPassword);
@@ -136,6 +142,61 @@ class WebSocketIT {
         owner.disconnect();
     }
 
+    @Test
+    void userWithTwoSessions_staysOnlineUntilTheLastOneCloses() throws Exception {
+        String ownerToken = register("ws5@example.com", "wsowner5");
+        String memberToken = register("ws5b@example.com", "wsmember5");
+        String workspaceId = createWorkspace(ownerToken, "Two Sessions Team");
+        post("/api/v1/workspaces/" + workspaceId + "/members", ownerToken, Map.of("email", "ws5b@example.com"));
+        String memberId = get("/api/v1/users/me", memberToken).get("id").asText();
+        String offline = "\"userId\":\"" + memberId + "\",\"status\":\"OFFLINE\"";
+
+        StompSession owner = connect(ownerToken);
+        BlockingQueue<String> presence = subscribe(owner, "/topic/workspace." + workspaceId + ".presence");
+
+        StompSession phone = connect(memberToken);
+        StompSession browser = connect(memberToken);
+        assertNotNull(awaitContaining(presence, "\"userId\":\"" + memberId + "\",\"status\":\"ONLINE\""));
+
+        phone.disconnect();
+        assertNull(awaitContaining(presence, offline, 2000));
+
+        browser.disconnect();
+        assertNotNull(awaitContaining(presence, offline));
+        owner.disconnect();
+    }
+
+    @Test
+    void presenceEndpoint_listsOnlyConnectedMembers() throws Exception {
+        String ownerToken = register("ws6@example.com", "wsowner6");
+        String memberToken = register("ws6b@example.com", "wsmember6");
+        String workspaceId = createWorkspace(ownerToken, "Snapshot Team");
+        post("/api/v1/workspaces/" + workspaceId + "/members", ownerToken, Map.of("email", "ws6b@example.com"));
+        String memberId = get("/api/v1/users/me", memberToken).get("id").asText();
+
+        assertNull(awaitOnlineUser(workspaceId, ownerToken, memberId, 1000));
+
+        StompSession member = connect(memberToken);
+        assertNotNull(awaitOnlineUser(workspaceId, ownerToken, memberId, 5000));
+
+        member.disconnect();
+    }
+
+    private String awaitOnlineUser(String workspaceId, String token, String userId, long timeoutMillis)
+            throws InterruptedException {
+        long deadline = System.currentTimeMillis() + timeoutMillis;
+        while (System.currentTimeMillis() < deadline) {
+            JsonNode online = get("/api/v1/workspaces/" + workspaceId + "/presence", token).get("onlineUserIds");
+            for (JsonNode id : online) {
+                if (id.asText().equals(userId)) {
+                    return userId;
+                }
+            }
+            Thread.sleep(200);
+        }
+        return null;
+    }
+
     private StompSession connect(String token) throws Exception {
         WebSocketStompClient client = new WebSocketStompClient(new StandardWebSocketClient());
         client.setMessageConverter(new StringMessageConverter());
@@ -168,7 +229,12 @@ class WebSocketIT {
     }
 
     private String awaitContaining(BlockingQueue<String> queue, String text) throws InterruptedException {
-        long deadline = System.currentTimeMillis() + 5000;
+        return awaitContaining(queue, text, 5000);
+    }
+
+    private String awaitContaining(BlockingQueue<String> queue, String text, long timeoutMillis)
+            throws InterruptedException {
+        long deadline = System.currentTimeMillis() + timeoutMillis;
         while (System.currentTimeMillis() < deadline) {
             String event = queue.poll(500, TimeUnit.MILLISECONDS);
             if (event != null && event.contains(text)) {
