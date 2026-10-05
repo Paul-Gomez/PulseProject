@@ -1,31 +1,15 @@
 package com.pulse.workspaces;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pulse.common.AbstractIntegrationTest;
-import com.pulse.identity.dto.RegisterRequest;
 import com.pulse.workspaces.dto.CreateWorkspaceRequest;
 import com.pulse.workspaces.dto.UpdateWorkspaceRequest;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 class WorkspaceControllerIT extends AbstractIntegrationTest {
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    private String registerAndGetAccessToken(String email, String username) throws Exception {
-        RegisterRequest request = new RegisterRequest(email, username, "supersecret123", username);
-        String body = mockMvc.perform(post("/api/v1/auth/register")
-                        .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isCreated())
-                .andReturn().getResponse().getContentAsString();
-        return objectMapper.readTree(body).get("accessToken").asText();
-    }
 
     @Test
     void createWorkspace_makesCreatorTheOwner() throws Exception {
