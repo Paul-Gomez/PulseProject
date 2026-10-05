@@ -9,5 +9,6 @@ public enum ErrorCode {
     USER_NOT_FOUND,
     ACCESS_DENIED,
     RESOURCE_NOT_FOUND,
+    CHANNEL_NAME_TAKEN,
     INTERNAL_ERROR
 }
