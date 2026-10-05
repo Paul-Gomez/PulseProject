@@ -1,0 +1,12 @@
+package com.pulse.audit.entity;
+
+public enum AuditAction {
+    MEMBER_INVITED,
+    MEMBER_REMOVED,
+    MEMBER_BANNED,
+    MEMBER_UNBANNED,
+    MEMBER_ROLE_CHANGED,
+    CHANNEL_ARCHIVED,
+    WORKSPACE_UPDATED,
+    MESSAGE_DELETED_BY_MODERATOR
+}
