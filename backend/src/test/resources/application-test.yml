@@ -8,3 +8,5 @@ spring:
 pulse:
   cors:
     allowed-origins: http://localhost:4200
+  rate-limit:
+    enabled: false

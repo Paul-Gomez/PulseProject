@@ -29,6 +29,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final RefreshTokenHasher refreshTokenHasher;
+    private final LoginAttemptService loginAttemptService;
 
     @Transactional
     public TokenPairResponse register(RegisterRequest request) {
@@ -54,13 +55,16 @@ public class AuthService {
 
     @Transactional
     public TokenPairResponse login(LoginRequest request) {
-        User user = userRepository.findByEmail(request.email())
-                .orElseThrow(() -> ApiException.unauthorized(ErrorCode.INVALID_CREDENTIALS, "Invalid credentials"));
+        loginAttemptService.requireNotLocked(request.email());
 
-        if (!passwordEncoder.matches(request.password(), user.getPasswordHash())) {
+        User user = userRepository.findByEmail(request.email()).orElse(null);
+        if (user == null || !passwordEncoder.matches(request.password(), user.getPasswordHash())) {
+            // Unknown emails are counted too, so the lock cannot be used to find out which emails exist.
+            loginAttemptService.recordFailure(request.email());
             throw ApiException.unauthorized(ErrorCode.INVALID_CREDENTIALS, "Invalid credentials");
         }
 
+        loginAttemptService.reset(request.email());
         return issueTokenPair(user);
     }
 
