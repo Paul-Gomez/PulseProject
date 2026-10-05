@@ -17,23 +17,20 @@ public class ChannelAccessService {
     private final ChannelMemberRepository channelMemberRepository;
     private final WorkspaceAuthorizationService workspaceAuthorizationService;
 
+    /**
+     * Being in the workspace is always required; private channels additionally need explicit membership.
+     * Checking the workspace first means someone removed from it can never read its private channels.
+     */
     public boolean canAccess(Channel channel, UUID userId) {
-        if (channel.isPrivate()) {
-            return channelMemberRepository.existsByChannelIdAndUserId(channel.getId(), userId);
+        if (!workspaceAuthorizationService.isMember(channel.getWorkspaceId(), userId)) {
+            return false;
         }
-        return workspaceAuthorizationService.isMember(channel.getWorkspaceId(), userId);
+        return !channel.isPrivate() || channelMemberRepository.existsByChannelIdAndUserId(channel.getId(), userId);
     }
 
     public void requireAccess(Channel channel, UUID userId) {
-        if (channel.isPrivate()) {
-            boolean isChannelMember = channelMemberRepository.existsByChannelIdAndUserId(channel.getId(), userId);
-            if (!isChannelMember) {
-                throw ApiException.forbidden(ErrorCode.ACCESS_DENIED, "Not a member of this private channel");
-            }
-            return;
+        if (!canAccess(channel, userId)) {
+            throw ApiException.forbidden(ErrorCode.ACCESS_DENIED, "You do not have access to this channel");
         }
-
-        // Public channels are visible to any member of the parent workspace.
-        workspaceAuthorizationService.requireMembership(channel.getWorkspaceId(), userId);
     }
 }
