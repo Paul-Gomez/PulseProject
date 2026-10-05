@@ -4,7 +4,9 @@ import com.pulse.channels.dto.ChannelResponse;
 import com.pulse.channels.dto.CreateChannelRequest;
 import com.pulse.channels.dto.UpdateChannelRequest;
 import com.pulse.channels.entity.Channel;
+import com.pulse.channels.entity.ChannelMember;
 import com.pulse.channels.mapper.ChannelMapper;
+import com.pulse.channels.repository.ChannelMemberRepository;
 import com.pulse.channels.repository.ChannelRepository;
 import com.pulse.common.exception.ApiException;
 import com.pulse.common.exception.ErrorCode;
@@ -22,6 +24,7 @@ import java.util.UUID;
 public class ChannelService {
 
     private final ChannelRepository channelRepository;
+    private final ChannelMemberRepository channelMemberRepository;
     private final ChannelMapper channelMapper;
     private final WorkspaceAuthorizationService workspaceAuthorizationService;
     private final ChannelAccessService channelAccessService;
@@ -42,7 +45,16 @@ public class ChannelService {
                 .createdBy(requesterId)
                 .build();
 
-        return channelMapper.toResponse(channelRepository.save(channel));
+        Channel saved = channelRepository.save(channel);
+
+        if (saved.isPrivate()) {
+            channelMemberRepository.save(ChannelMember.builder()
+                    .channelId(saved.getId())
+                    .userId(requesterId)
+                    .build());
+        }
+
+        return channelMapper.toResponse(saved);
     }
 
     public List<ChannelResponse> listForWorkspace(UUID workspaceId, UUID requesterId) {
