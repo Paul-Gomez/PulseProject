@@ -5,12 +5,14 @@ import com.pulse.common.exception.ErrorCode;
 import com.pulse.users.dto.UpdateProfileRequest;
 import com.pulse.users.dto.UserResponse;
 import com.pulse.users.entity.User;
+import com.pulse.users.entity.UserStatus;
 import com.pulse.users.mapper.UserMapper;
 import com.pulse.users.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.UUID;
 
 @Service
@@ -36,6 +38,16 @@ public class UserService {
         }
 
         return userMapper.toResponse(userRepository.save(user));
+    }
+
+    @Transactional
+    public void updateStatus(UUID id, UserStatus status) {
+        User user = findUserOrThrow(id);
+        user.setStatus(status);
+        if (status == UserStatus.OFFLINE) {
+            user.setLastSeenAt(Instant.now());
+        }
+        userRepository.save(user);
     }
 
     private User findUserOrThrow(UUID id) {
