@@ -1,6 +1,7 @@
 package com.pulse.channels.listener;
 
 import com.pulse.channels.repository.ChannelMemberRepository;
+import com.pulse.workspaces.event.MemberBannedEvent;
 import com.pulse.workspaces.event.MemberRemovedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
@@ -15,6 +16,11 @@ public class WorkspaceMembershipListener {
 
     @EventListener
     public void onMemberRemoved(MemberRemovedEvent event) {
+        channelMemberRepository.deleteAllForUserInWorkspace(event.targetUserId(), event.workspaceId());
+    }
+
+    @EventListener
+    public void onMemberBanned(MemberBannedEvent event) {
         channelMemberRepository.deleteAllForUserInWorkspace(event.targetUserId(), event.workspaceId());
     }
 }

@@ -15,6 +15,7 @@ import com.pulse.workspaces.event.MemberRemovedEvent;
 import com.pulse.workspaces.event.MemberRoleChangedEvent;
 import com.pulse.workspaces.mapper.MemberMapper;
 import com.pulse.workspaces.repository.RoleRepository;
+import com.pulse.workspaces.repository.WorkspaceBanRepository;
 import com.pulse.workspaces.repository.WorkspaceMemberRepository;
 import com.pulse.workspaces.repository.WorkspaceRepository;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +37,7 @@ public class WorkspaceMembershipService {
     private final RoleRepository roleRepository;
     private final MemberMapper memberMapper;
     private final WorkspaceRepository workspaceRepository;
+    private final WorkspaceBanRepository workspaceBanRepository;
     private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
@@ -45,6 +47,9 @@ public class WorkspaceMembershipService {
         var invitedUser = userRepository.findByEmail(request.email())
                 .orElseThrow(() -> ApiException.notFound(ErrorCode.USER_NOT_FOUND, "User not found"));
 
+        if (workspaceBanRepository.existsByWorkspaceIdAndUserId(workspaceId, invitedUser.getId())) {
+            throw ApiException.conflict(ErrorCode.USER_BANNED, "User is banned from this workspace");
+        }
         if (workspaceMemberRepository.existsByWorkspaceIdAndUserId(workspaceId, invitedUser.getId())) {
             throw ApiException.conflict(ErrorCode.MEMBER_ALREADY_EXISTS, "User is already a member of this workspace");
         }
