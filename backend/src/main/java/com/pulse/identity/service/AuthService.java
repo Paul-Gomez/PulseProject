@@ -78,7 +78,7 @@ public class AuthService {
             // Reuse of an already-revoked token is treated as a compromise signal: revoke every active
             // refresh token for that user so a stolen token cannot keep issuing new sessions.
             if (storedToken.getRevokedAt() != null) {
-                revokeAllForUser(storedToken.getUserId());
+                revokeAllSessions(storedToken.getUserId());
             }
             throw ApiException.unauthorized(ErrorCode.INVALID_REFRESH_TOKEN, "Invalid refresh token");
         }
@@ -101,7 +101,8 @@ public class AuthService {
         });
     }
 
-    private void revokeAllForUser(UUID userId) {
+    @Transactional
+    public void revokeAllSessions(UUID userId) {
         var activeTokens = refreshTokenRepository.findAllByUserIdAndRevokedAtIsNull(userId);
         Instant now = Instant.now();
         activeTokens.forEach(t -> t.setRevokedAt(now));
