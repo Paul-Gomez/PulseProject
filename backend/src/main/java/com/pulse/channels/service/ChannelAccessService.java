@@ -17,6 +17,13 @@ public class ChannelAccessService {
     private final ChannelMemberRepository channelMemberRepository;
     private final WorkspaceAuthorizationService workspaceAuthorizationService;
 
+    public boolean canAccess(Channel channel, UUID userId) {
+        if (channel.isPrivate()) {
+            return channelMemberRepository.existsByChannelIdAndUserId(channel.getId(), userId);
+        }
+        return workspaceAuthorizationService.isMember(channel.getWorkspaceId(), userId);
+    }
+
     public void requireAccess(Channel channel, UUID userId) {
         if (channel.isPrivate()) {
             boolean isChannelMember = channelMemberRepository.existsByChannelIdAndUserId(channel.getId(), userId);

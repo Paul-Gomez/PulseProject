@@ -8,11 +8,17 @@ import com.pulse.workspaces.dto.InviteMemberRequest;
 import com.pulse.workspaces.dto.MemberResponse;
 import com.pulse.workspaces.dto.UpdateMemberRoleRequest;
 import com.pulse.workspaces.entity.Role;
+import com.pulse.workspaces.entity.Workspace;
 import com.pulse.workspaces.entity.WorkspaceMember;
+import com.pulse.workspaces.event.MemberInvitedEvent;
+import com.pulse.workspaces.event.MemberRemovedEvent;
+import com.pulse.workspaces.event.MemberRoleChangedEvent;
 import com.pulse.workspaces.mapper.MemberMapper;
 import com.pulse.workspaces.repository.RoleRepository;
 import com.pulse.workspaces.repository.WorkspaceMemberRepository;
+import com.pulse.workspaces.repository.WorkspaceRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +35,8 @@ public class WorkspaceMembershipService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final MemberMapper memberMapper;
+    private final WorkspaceRepository workspaceRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public MemberResponse invite(UUID workspaceId, UUID requesterId, InviteMemberRequest request) {
@@ -49,8 +57,11 @@ public class WorkspaceMembershipService {
                 .userId(invitedUser.getId())
                 .role(memberRole)
                 .build();
+        WorkspaceMember saved = workspaceMemberRepository.save(member);
 
-        return memberMapper.toResponse(workspaceMemberRepository.save(member));
+        eventPublisher.publishEvent(new MemberInvitedEvent(
+                workspaceId, workspaceName(workspaceId), invitedUser.getId(), requesterId));
+        return memberMapper.toResponse(saved);
     }
 
     public PageResponse<MemberResponse> listMembers(UUID workspaceId, UUID requesterId, Pageable pageable) {
@@ -84,8 +95,13 @@ public class WorkspaceMembershipService {
             throw ApiException.forbidden(ErrorCode.ACCESS_DENIED, "You cannot assign a role equal to or higher than your own");
         }
 
+        String oldRole = member.getRole().getName();
         member.setRole(newRole);
-        return memberMapper.toResponse(workspaceMemberRepository.save(member));
+        WorkspaceMember saved = workspaceMemberRepository.save(member);
+
+        eventPublisher.publishEvent(new MemberRoleChangedEvent(
+                workspaceId, requesterId, targetUserId, oldRole, newRole.getName()));
+        return memberMapper.toResponse(saved);
     }
 
     @Transactional
@@ -100,5 +116,12 @@ public class WorkspaceMembershipService {
         }
 
         workspaceMemberRepository.delete(member);
+
+        eventPublisher.publishEvent(new MemberRemovedEvent(
+                workspaceId, workspaceName(workspaceId), requesterId, targetUserId));
+    }
+
+    private String workspaceName(UUID workspaceId) {
+        return workspaceRepository.findById(workspaceId).map(Workspace::getName).orElse("");
     }
 }

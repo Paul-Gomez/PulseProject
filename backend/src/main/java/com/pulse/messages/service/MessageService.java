@@ -14,6 +14,7 @@ import com.pulse.messages.dto.SendMessageRequest;
 import com.pulse.messages.entity.Message;
 import com.pulse.messages.event.MessageCreatedEvent;
 import com.pulse.messages.event.MessageDeletedEvent;
+import com.pulse.messages.event.MessageModeratedEvent;
 import com.pulse.messages.event.MessageUpdatedEvent;
 import com.pulse.messages.mapper.MessageMapper;
 import com.pulse.messages.repository.MessageRepository;
@@ -63,7 +64,7 @@ public class MessageService {
                 .build();
         message = messageRepository.save(message);
 
-        mentionService.processMentions(message.getId(), message.getContent());
+        mentionService.processMentions(message, channel);
         List<AttachmentResponse> attachments = attachmentService.attachToMessage(
                 message.getId(), channelId, authorId, request.attachmentIds());
 
@@ -125,6 +126,11 @@ public class MessageService {
         message.setDeletedAt(Instant.now());
         messageRepository.save(message);
         attachmentService.deleteForMessage(message.getId());
+
+        if (!isAuthor) {
+            eventPublisher.publishEvent(new MessageModeratedEvent(
+                    channel.getWorkspaceId(), channel.getId(), message.getId(), requesterId, message.getAuthorId()));
+        }
 
         eventPublisher.publishEvent(new MessageDeletedEvent(message.getChannelId(), message.getId()));
     }

@@ -5,6 +5,7 @@ import com.pulse.channels.dto.CreateChannelRequest;
 import com.pulse.channels.dto.UpdateChannelRequest;
 import com.pulse.channels.entity.Channel;
 import com.pulse.channels.entity.ChannelMember;
+import com.pulse.channels.event.ChannelArchivedEvent;
 import com.pulse.channels.mapper.ChannelMapper;
 import com.pulse.channels.repository.ChannelMemberRepository;
 import com.pulse.channels.repository.ChannelRepository;
@@ -12,6 +13,7 @@ import com.pulse.common.exception.ApiException;
 import com.pulse.common.exception.ErrorCode;
 import com.pulse.workspaces.service.WorkspaceAuthorizationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +30,7 @@ public class ChannelService {
     private final ChannelMapper channelMapper;
     private final WorkspaceAuthorizationService workspaceAuthorizationService;
     private final ChannelAccessService channelAccessService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public ChannelResponse create(UUID workspaceId, UUID requesterId, CreateChannelRequest request) {
@@ -92,6 +95,9 @@ public class ChannelService {
 
         channel.setArchivedAt(Instant.now());
         channelRepository.save(channel);
+
+        eventPublisher.publishEvent(new ChannelArchivedEvent(
+                channel.getWorkspaceId(), requesterId, channel.getId(), channel.getName()));
     }
 
     private Channel findChannelOrThrow(UUID channelId) {

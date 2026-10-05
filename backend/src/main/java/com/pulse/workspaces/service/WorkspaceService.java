@@ -8,14 +8,17 @@ import com.pulse.workspaces.dto.WorkspaceResponse;
 import com.pulse.workspaces.entity.Role;
 import com.pulse.workspaces.entity.Workspace;
 import com.pulse.workspaces.entity.WorkspaceMember;
+import com.pulse.workspaces.event.WorkspaceUpdatedEvent;
 import com.pulse.workspaces.mapper.WorkspaceMapper;
 import com.pulse.workspaces.repository.RoleRepository;
 import com.pulse.workspaces.repository.WorkspaceMemberRepository;
 import com.pulse.workspaces.repository.WorkspaceRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -30,6 +33,7 @@ public class WorkspaceService {
     private final RoleRepository roleRepository;
     private final WorkspaceMapper workspaceMapper;
     private final WorkspaceAuthorizationService authorizationService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public WorkspaceResponse create(UUID ownerId, CreateWorkspaceRequest request) {
@@ -69,17 +73,25 @@ public class WorkspaceService {
         authorizationService.requirePermission(workspaceId, requesterId, "WORKSPACE_EDIT");
 
         Workspace workspace = findWorkspaceOrThrow(workspaceId);
+        List<String> changed = new ArrayList<>();
         if (request.name() != null) {
             workspace.setName(request.name());
+            changed.add("name");
         }
         if (request.description() != null) {
             workspace.setDescription(request.description());
+            changed.add("description");
         }
         if (request.iconUrl() != null) {
             workspace.setIconUrl(request.iconUrl());
+            changed.add("iconUrl");
         }
 
-        return workspaceMapper.toResponse(workspaceRepository.save(workspace));
+        Workspace saved = workspaceRepository.save(workspace);
+        if (!changed.isEmpty()) {
+            eventPublisher.publishEvent(new WorkspaceUpdatedEvent(workspaceId, requesterId, String.join(", ", changed)));
+        }
+        return workspaceMapper.toResponse(saved);
     }
 
     @Transactional
