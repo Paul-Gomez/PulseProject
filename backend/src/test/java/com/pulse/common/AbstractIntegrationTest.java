@@ -22,14 +22,19 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-@Testcontainers
+
 public abstract class AbstractIntegrationTest {
 
-    @Container
+
     static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:16-alpine")
             .withDatabaseName("pulse_test")
             .withUsername("pulse")
             .withPassword("pulse");
+
+    // One container for the whole run: Spring caches the context between test classes, so the DB must outlive each class.
+    static {
+        POSTGRES.start();
+    }
 
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {

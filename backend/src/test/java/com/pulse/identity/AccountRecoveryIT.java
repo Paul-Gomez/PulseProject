@@ -38,13 +38,13 @@ class AccountRecoveryIT extends AbstractIntegrationTest {
         return objectMapper.readTree(body).get("refreshToken").asText();
     }
 
-    private void post(String url, String json, int expectedStatus) throws Exception {
+    private void postJson(String url, String json, int expectedStatus) throws Exception {
         mockMvc.perform(post(url).contentType("application/json").content(json))
                 .andExpect(status().is(expectedStatus));
     }
 
     private void login(String email, String password, int expectedStatus) throws Exception {
-        post("/api/v1/auth/login", "{\"email\":\"" + email + "\",\"password\":\"" + password + "\"}", expectedStatus);
+        postJson("/api/v1/auth/login", "{\"email\":\"" + email + "\",\"password\":\"" + password + "\"}", expectedStatus);
     }
 
     @Test
@@ -55,11 +55,11 @@ class AccountRecoveryIT extends AbstractIntegrationTest {
         mockMvc.perform(get("/api/v1/users/me").header("Authorization", "Bearer " + token))
                 .andExpect(jsonPath("$.emailVerified").value(false));
 
-        post("/api/v1/auth/verify-email", "{\"token\":\"" + verificationToken + "\"}", 204);
+        postJson("/api/v1/auth/verify-email", "{\"token\":\"" + verificationToken + "\"}", 204);
 
         mockMvc.perform(get("/api/v1/users/me").header("Authorization", "Bearer " + token))
                 .andExpect(jsonPath("$.emailVerified").value(true));
-        post("/api/v1/auth/verify-email", "{\"token\":\"" + verificationToken + "\"}", 400);
+        postJson("/api/v1/auth/verify-email", "{\"token\":\"" + verificationToken + "\"}", 400);
     }
 
     @Test
@@ -80,7 +80,7 @@ class AccountRecoveryIT extends AbstractIntegrationTest {
                 .andExpect(status().isNoContent());
         assertEquals(2, mails.sentTo("verify2@example.com").size());
 
-        post("/api/v1/auth/verify-email",
+        postJson("/api/v1/auth/verify-email",
                 "{\"token\":\"" + mails.lastTokenSentTo("verify2@example.com").orElseThrow() + "\"}", 204);
         mockMvc.perform(post("/api/v1/users/me/verification-email").header("Authorization", "Bearer " + token))
                 .andExpect(status().isNoContent());
@@ -91,7 +91,7 @@ class AccountRecoveryIT extends AbstractIntegrationTest {
 
     @Test
     void forgotPassword_looksTheSameForUnknownEmails_andSendsNothingForThem() throws Exception {
-        post("/api/v1/auth/forgot-password", "{\"email\":\"nadie-registrado@example.com\"}", 204);
+        postJson("/api/v1/auth/forgot-password", "{\"email\":\"nadie-registrado@example.com\"}", 204);
 
         assertTrue(mails.sentTo("nadie-registrado@example.com").isEmpty());
     }
@@ -100,27 +100,27 @@ class AccountRecoveryIT extends AbstractIntegrationTest {
     void resettingThePassword_withTheEmailedLink_replacesItAndClosesAllSessions() throws Exception {
         String refreshToken = registerAndGetRefreshToken("reset1@example.com", "resetuser1");
 
-        post("/api/v1/auth/forgot-password", "{\"email\":\"reset1@example.com\"}", 204);
+        postJson("/api/v1/auth/forgot-password", "{\"email\":\"reset1@example.com\"}", 204);
         String resetToken = mails.lastTokenSentTo("reset1@example.com").orElseThrow();
-        post("/api/v1/auth/reset-password", "{\"token\":\"" + resetToken + "\",\"newPassword\":\"claveRecuperada789\"}", 204);
+        postJson("/api/v1/auth/reset-password", "{\"token\":\"" + resetToken + "\",\"newPassword\":\"claveRecuperada789\"}", 204);
 
         login("reset1@example.com", "supersecret123", 401);
         login("reset1@example.com", "claveRecuperada789", 200);
-        post("/api/v1/auth/refresh", "{\"refreshToken\":\"" + refreshToken + "\"}", 401);
-        post("/api/v1/auth/reset-password", "{\"token\":\"" + resetToken + "\",\"newPassword\":\"otraMasDistinta000\"}", 400);
+        postJson("/api/v1/auth/refresh", "{\"refreshToken\":\"" + refreshToken + "\"}", 401);
+        postJson("/api/v1/auth/reset-password", "{\"token\":\"" + resetToken + "\",\"newPassword\":\"otraMasDistinta000\"}", 400);
     }
 
     @Test
     void askingForANewResetLink_invalidatesThePreviousOne() throws Exception {
         registerAndGetAccessToken("reset2@example.com", "resetuser2");
 
-        post("/api/v1/auth/forgot-password", "{\"email\":\"reset2@example.com\"}", 204);
+        postJson("/api/v1/auth/forgot-password", "{\"email\":\"reset2@example.com\"}", 204);
         String firstToken = mails.lastTokenSentTo("reset2@example.com").orElseThrow();
-        post("/api/v1/auth/forgot-password", "{\"email\":\"reset2@example.com\"}", 204);
+        postJson("/api/v1/auth/forgot-password", "{\"email\":\"reset2@example.com\"}", 204);
         String secondToken = mails.lastTokenSentTo("reset2@example.com").orElseThrow();
 
-        post("/api/v1/auth/reset-password", "{\"token\":\"" + firstToken + "\",\"newPassword\":\"claveRecuperada789\"}", 400);
-        post("/api/v1/auth/reset-password", "{\"token\":\"" + secondToken + "\",\"newPassword\":\"claveRecuperada789\"}", 204);
+        postJson("/api/v1/auth/reset-password", "{\"token\":\"" + firstToken + "\",\"newPassword\":\"claveRecuperada789\"}", 400);
+        postJson("/api/v1/auth/reset-password", "{\"token\":\"" + secondToken + "\",\"newPassword\":\"claveRecuperada789\"}", 204);
     }
 
     @Test
@@ -128,12 +128,12 @@ class AccountRecoveryIT extends AbstractIntegrationTest {
         registerAndGetAccessToken("reset3@example.com", "resetuser3");
         String verificationToken = mails.lastTokenSentTo("reset3@example.com").orElseThrow();
 
-        post("/api/v1/auth/reset-password",
+        postJson("/api/v1/auth/reset-password",
                 "{\"token\":\"" + verificationToken + "\",\"newPassword\":\"claveRecuperada789\"}", 400);
     }
 
     @Test
     void resetPasswordMustBeStrongEnough() throws Exception {
-        post("/api/v1/auth/reset-password", "{\"token\":\"cualquiera\",\"newPassword\":\"corta\"}", 400);
+        postJson("/api/v1/auth/reset-password", "{\"token\":\"cualquiera\",\"newPassword\":\"corta\"}", 400);
     }
 }
