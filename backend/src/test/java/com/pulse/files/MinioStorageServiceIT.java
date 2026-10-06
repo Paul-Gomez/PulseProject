@@ -20,12 +20,12 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 class MinioStorageServiceIT {
 
     @Container
-    static final GenericContainer<?> MINIO = new GenericContainer<>("minio/minio:latest")
-            .withCommand("server /data")
-            .withEnv("MINIO_ROOT_USER", "pulse")
-            .withEnv("MINIO_ROOT_PASSWORD", "pulsesecret")
+    static final GenericContainer<?> MINIO = new GenericContainer<>("rustfs/rustfs:latest")
+            
+            .withEnv("RUSTFS_ACCESS_KEY", "pulse")
+            .withEnv("RUSTFS_SECRET_KEY", "pulsesecret")
             .withExposedPorts(9000)
-            .waitingFor(Wait.forHttp("/minio/health/ready").forPort(9000));
+            .waitingFor(Wait.forHttp("/health").forPort(9000));
 
     private static MinioStorageService storage;
 
