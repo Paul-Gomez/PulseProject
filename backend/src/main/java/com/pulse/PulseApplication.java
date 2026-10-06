@@ -1,5 +1,6 @@
 package com.pulse;
 
+import com.pulse.common.mail.MailProperties;
 import com.pulse.common.ratelimit.RateLimitProperties;
 import com.pulse.files.config.MinioProperties;
 import com.pulse.files.config.StorageProperties;
@@ -11,7 +12,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
 @EnableScheduling
-@EnableConfigurationProperties({JwtProperties.class, RateLimitProperties.class, MinioProperties.class, StorageProperties.class})
+@EnableConfigurationProperties({JwtProperties.class, RateLimitProperties.class, MinioProperties.class,
+        StorageProperties.class, MailProperties.class})
 public class PulseApplication {
 
     public static void main(String[] args) {

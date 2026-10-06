@@ -30,6 +30,7 @@ public class AuthService {
     private final JwtService jwtService;
     private final RefreshTokenHasher refreshTokenHasher;
     private final LoginAttemptService loginAttemptService;
+    private final EmailVerificationService emailVerificationService;
 
     @Transactional
     public TokenPairResponse register(RegisterRequest request) {
@@ -49,6 +50,7 @@ public class AuthService {
                 .emailVerified(false)
                 .build();
         user = userRepository.save(user);
+        emailVerificationService.sendVerificationEmail(user);
 
         return issueTokenPair(user);
     }

@@ -26,7 +26,11 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class RateLimitFilter extends OncePerRequestFilter {
 
-    private static final Set<String> LIMITED_PATHS = Set.of("/api/v1/auth/login", "/api/v1/auth/register");
+    private static final Set<String> LIMITED_PATHS = Set.of(
+            "/api/v1/auth/login",
+            "/api/v1/auth/register",
+            "/api/v1/auth/forgot-password",
+            "/api/v1/auth/reset-password");
     private static final Duration WINDOW = Duration.ofMinutes(1);
 
     private final RateLimiter rateLimiter;
