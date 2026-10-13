@@ -47,6 +47,9 @@ public class MessageService {
     public MessageResponse send(UUID channelId, UUID authorId, SendMessageRequest request) {
         Channel channel = findChannelOrThrow(channelId);
         channelAccessService.requireAccess(channel, authorId);
+        if (channel.getArchivedAt() != null) {
+            throw ApiException.conflict(ErrorCode.CHANNEL_ARCHIVED, "This channel is archived");
+        }
 
         if (request.parentMessageId() != null) {
             Message parent = messageRepository.findById(request.parentMessageId())

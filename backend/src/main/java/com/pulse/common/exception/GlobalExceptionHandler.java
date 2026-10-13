@@ -2,6 +2,7 @@ package com.pulse.common.exception;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.mapping.PropertyReferenceException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -44,6 +45,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         ErrorResponse body = ErrorResponse.of(
                 HttpStatus.FORBIDDEN.value(), ErrorCode.ACCESS_DENIED, "Access denied", request.getRequestURI());
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
+    }
+
+    @ExceptionHandler(PropertyReferenceException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidSort(PropertyReferenceException ex, HttpServletRequest request) {
+        ErrorResponse body = ErrorResponse.of(HttpStatus.BAD_REQUEST.value(), ErrorCode.BAD_REQUEST,
+                "Cannot sort by '" + ex.getPropertyName() + "'", request.getRequestURI());
+        return ResponseEntity.badRequest().body(body);
     }
 
     @ExceptionHandler(Exception.class)

@@ -6,3 +6,9 @@ logging:
 spring:
   jpa:
     show-sql: true
+
+pulse:
+  security:
+    jwt:
+      # Only for running locally with the "dev" profile. Never use this value anywhere else.
+      secret: ${JWT_SECRET:dev-only-secret-do-not-use-in-production-0123456789}
