@@ -63,6 +63,7 @@ public class ChannelService {
     public List<ChannelResponse> listForWorkspace(UUID workspaceId, UUID requesterId) {
         workspaceAuthorizationService.requireMembership(workspaceId, requesterId);
         return channelRepository.findAllByWorkspaceIdAndArchivedAtIsNullOrderByPositionAsc(workspaceId).stream()
+                .filter(channel -> channelAccessService.canAccess(channel, requesterId))
                 .map(channelMapper::toResponse)
                 .toList();
     }
