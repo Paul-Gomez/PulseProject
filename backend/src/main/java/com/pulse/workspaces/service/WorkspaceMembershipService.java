@@ -3,6 +3,9 @@ package com.pulse.workspaces.service;
 import com.pulse.common.exception.ApiException;
 import com.pulse.common.exception.ErrorCode;
 import com.pulse.common.pagination.PageResponse;
+import com.pulse.users.dto.UserSummaryResponse;
+import com.pulse.users.entity.User;
+import com.pulse.users.mapper.UserMapper;
 import com.pulse.users.repository.UserRepository;
 import com.pulse.workspaces.dto.InviteMemberRequest;
 import com.pulse.workspaces.dto.MemberResponse;
@@ -25,7 +28,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -36,6 +41,7 @@ public class WorkspaceMembershipService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final MemberMapper memberMapper;
+    private final UserMapper userMapper;
     private final WorkspaceRepository workspaceRepository;
     private final WorkspaceBanRepository workspaceBanRepository;
     private final ApplicationEventPublisher eventPublisher;
@@ -66,13 +72,19 @@ public class WorkspaceMembershipService {
 
         eventPublisher.publishEvent(new MemberInvitedEvent(
                 workspaceId, workspaceName(workspaceId), invitedUser.getId(), requesterId));
-        return memberMapper.toResponse(saved);
+        return memberMapper.toResponse(saved, userMapper.toSummary(invitedUser));
     }
 
     public PageResponse<MemberResponse> listMembers(UUID workspaceId, UUID requesterId, Pageable pageable) {
         authorizationService.requireMembership(workspaceId, requesterId);
         var page = workspaceMemberRepository.findAllByWorkspaceId(workspaceId, pageable);
-        return PageResponse.from(page, memberMapper::toResponse);
+
+        // One query for all the profiles of the page instead of one per member.
+        List<UUID> userIds = page.getContent().stream().map(WorkspaceMember::getUserId).toList();
+        Map<UUID, UserSummaryResponse> users = userRepository.findAllById(userIds).stream()
+                .collect(Collectors.toMap(User::getId, userMapper::toSummary));
+
+        return PageResponse.from(page, member -> memberMapper.toResponse(member, users.get(member.getUserId())));
     }
 
     public List<UUID> listMemberUserIds(UUID workspaceId, UUID requesterId) {
@@ -106,7 +118,7 @@ public class WorkspaceMembershipService {
 
         eventPublisher.publishEvent(new MemberRoleChangedEvent(
                 workspaceId, requesterId, targetUserId, oldRole, newRole.getName()));
-        return memberMapper.toResponse(saved);
+        return memberMapper.toResponse(saved, userRepository.findById(targetUserId).map(userMapper::toSummary).orElse(null));
     }
 
     @Transactional

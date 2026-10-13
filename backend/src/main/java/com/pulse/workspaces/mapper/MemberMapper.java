@@ -1,13 +1,16 @@
 package com.pulse.workspaces.mapper;
 
+import com.pulse.users.dto.UserSummaryResponse;
 import com.pulse.workspaces.dto.MemberResponse;
 import com.pulse.workspaces.entity.WorkspaceMember;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import org.springframework.stereotype.Component;
 
-@Mapper(componentModel = "spring")
-public interface MemberMapper {
+/** Hand-written because a member response combines data from two modules (membership + user profile). */
+@Component
+public class MemberMapper {
 
-    @Mapping(target = "roleName", source = "role.name")
-    MemberResponse toResponse(WorkspaceMember member);
+    public MemberResponse toResponse(WorkspaceMember member, UserSummaryResponse user) {
+        return new MemberResponse(member.getId(), member.getUserId(), member.getRole().getName(),
+                member.getJoinedAt(), user);
+    }
 }
