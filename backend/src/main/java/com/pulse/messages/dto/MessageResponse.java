@@ -15,10 +15,16 @@ public record MessageResponse(
         Instant editedAt,
         Instant deletedAt,
         Instant createdAt,
-        List<AttachmentResponse> attachments
+        List<AttachmentResponse> attachments,
+        List<ReactionSummary> reactions
 ) {
     public MessageResponse withAttachments(List<AttachmentResponse> newAttachments) {
         return new MessageResponse(id, channelId, authorId, content, parentMessageId,
-                editedAt, deletedAt, createdAt, newAttachments);
+                editedAt, deletedAt, createdAt, newAttachments, reactions);
+    }
+
+    public MessageResponse withReactions(List<ReactionSummary> newReactions) {
+        return new MessageResponse(id, channelId, authorId, content, parentMessageId,
+                editedAt, deletedAt, createdAt, attachments, newReactions);
     }
 }

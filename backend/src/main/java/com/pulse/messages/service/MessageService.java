@@ -10,13 +10,16 @@ import com.pulse.files.dto.AttachmentResponse;
 import com.pulse.files.service.AttachmentService;
 import com.pulse.messages.dto.EditMessageRequest;
 import com.pulse.messages.dto.MessageResponse;
+import com.pulse.messages.dto.ReactionSummary;
 import com.pulse.messages.dto.SendMessageRequest;
 import com.pulse.messages.entity.Message;
+import com.pulse.messages.entity.MessageReaction;
 import com.pulse.messages.event.MessageCreatedEvent;
 import com.pulse.messages.event.MessageDeletedEvent;
 import com.pulse.messages.event.MessageModeratedEvent;
 import com.pulse.messages.event.MessageUpdatedEvent;
 import com.pulse.messages.mapper.MessageMapper;
+import com.pulse.messages.repository.MessageReactionRepository;
 import com.pulse.messages.repository.MessageRepository;
 import com.pulse.workspaces.service.WorkspaceAuthorizationService;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +29,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -35,6 +40,7 @@ import java.util.UUID;
 public class MessageService {
 
     private final MessageRepository messageRepository;
+    private final MessageReactionRepository messageReactionRepository;
     private final ChannelRepository channelRepository;
     private final ChannelAccessService channelAccessService;
     private final WorkspaceAuthorizationService workspaceAuthorizationService;
@@ -71,7 +77,7 @@ public class MessageService {
         List<AttachmentResponse> attachments = attachmentService.attachToMessage(
                 message.getId(), channelId, authorId, request.attachmentIds());
 
-        MessageResponse response = messageMapper.toResponse(message).withAttachments(attachments);
+        MessageResponse response = messageMapper.toResponse(message).withAttachments(attachments).withReactions(List.of());
         eventPublisher.publishEvent(new MessageCreatedEvent(response));
         return response;
     }
@@ -83,9 +89,29 @@ public class MessageService {
         var page = messageRepository.findAllByChannelIdAndDeletedAtIsNullOrderByCreatedAtDesc(channelId, pageable);
         List<UUID> messageIds = page.getContent().stream().map(Message::getId).toList();
         Map<UUID, List<AttachmentResponse>> attachments = attachmentService.findForMessages(messageIds);
+        Map<UUID, List<ReactionSummary>> reactions = reactionsFor(messageIds);
 
-        return PageResponse.from(page, message ->
-                messageMapper.toResponse(message).withAttachments(attachments.getOrDefault(message.getId(), List.of())));
+        return PageResponse.from(page, message -> messageMapper.toResponse(message)
+                .withAttachments(attachments.getOrDefault(message.getId(), List.of()))
+                .withReactions(reactions.getOrDefault(message.getId(), List.of())));
+    }
+
+    /** Groups the reactions of several messages by message and emoji: [👍 x3 (users...)], in one query. */
+    private Map<UUID, List<ReactionSummary>> reactionsFor(List<UUID> messageIds) {
+        if (messageIds.isEmpty()) {
+            return Map.of();
+        }
+        Map<UUID, Map<String, List<UUID>>> byMessage = new LinkedHashMap<>();
+        for (MessageReaction reaction : messageReactionRepository.findAllByMessageIdInOrderByCreatedAtAsc(messageIds)) {
+            byMessage.computeIfAbsent(reaction.getMessageId(), id -> new LinkedHashMap<>())
+                    .computeIfAbsent(reaction.getEmoji(), emoji -> new ArrayList<>())
+                    .add(reaction.getUserId());
+        }
+        Map<UUID, List<ReactionSummary>> result = new LinkedHashMap<>();
+        byMessage.forEach((messageId, byEmoji) -> result.put(messageId, byEmoji.entrySet().stream()
+                .map(e -> new ReactionSummary(e.getKey(), e.getValue().size(), e.getValue()))
+                .toList()));
+        return result;
     }
 
     @Transactional
@@ -107,7 +133,8 @@ public class MessageService {
 
         List<AttachmentResponse> attachments = attachmentService.findForMessages(List.of(message.getId()))
                 .getOrDefault(message.getId(), List.of());
-        MessageResponse response = messageMapper.toResponse(message).withAttachments(attachments);
+        MessageResponse response = messageMapper.toResponse(message).withAttachments(attachments)
+                .withReactions(reactionsFor(List.of(message.getId())).getOrDefault(message.getId(), List.of()));
         eventPublisher.publishEvent(new MessageUpdatedEvent(response));
         return response;
     }

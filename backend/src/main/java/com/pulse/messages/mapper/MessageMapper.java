@@ -8,7 +8,8 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface MessageMapper {
 
-    // Attachments live in the files module; MessageService fills them in with MessageResponse#withAttachments.
+    // Attachments and reactions are filled in by MessageService, which loads them for a whole page at once.
     @Mapping(target = "attachments", ignore = true)
+    @Mapping(target = "reactions", ignore = true)
     MessageResponse toResponse(Message message);
 }
