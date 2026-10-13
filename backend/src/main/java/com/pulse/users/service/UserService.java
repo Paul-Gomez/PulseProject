@@ -4,6 +4,7 @@ import com.pulse.common.exception.ApiException;
 import com.pulse.common.exception.ErrorCode;
 import com.pulse.users.dto.UpdateProfileRequest;
 import com.pulse.users.dto.UserResponse;
+import com.pulse.users.dto.UserSummaryResponse;
 import com.pulse.users.entity.User;
 import com.pulse.users.entity.UserStatus;
 import com.pulse.users.mapper.UserMapper;
@@ -24,6 +25,10 @@ public class UserService {
 
     public UserResponse getById(UUID id) {
         return userMapper.toResponse(findUserOrThrow(id));
+    }
+
+    public UserSummaryResponse getPublicProfile(UUID id) {
+        return userMapper.toSummary(findUserOrThrow(id));
     }
 
     @Transactional

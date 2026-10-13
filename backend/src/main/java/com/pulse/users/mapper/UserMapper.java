@@ -1,6 +1,7 @@
 package com.pulse.users.mapper;
 
 import com.pulse.users.dto.UserResponse;
+import com.pulse.users.dto.UserSummaryResponse;
 import com.pulse.users.entity.User;
 import org.mapstruct.Mapper;
 
@@ -8,4 +9,6 @@ import org.mapstruct.Mapper;
 public interface UserMapper {
 
     UserResponse toResponse(User user);
+
+    UserSummaryResponse toSummary(User user);
 }

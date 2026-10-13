@@ -3,6 +3,7 @@ package com.pulse.users.controller;
 import com.pulse.common.security.CurrentUserProvider;
 import com.pulse.users.dto.UpdateProfileRequest;
 import com.pulse.users.dto.UserResponse;
+import com.pulse.users.dto.UserSummaryResponse;
 import com.pulse.users.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +30,7 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public UserResponse getById(@PathVariable UUID id) {
-        return userService.getById(id);
+    public UserSummaryResponse getById(@PathVariable UUID id) {
+        return userService.getPublicProfile(id);
     }
 }
