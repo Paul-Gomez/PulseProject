@@ -9,7 +9,7 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.messaging.converter.StringMessageConverter;
+import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.simp.stomp.StompFrameHandler;
 import org.springframework.messaging.simp.stomp.StompHeaders;
 import org.springframework.messaging.simp.stomp.StompSession;
@@ -117,7 +117,7 @@ class WebSocketIT {
         StompSession session = connect(token);
         BlockingQueue<String> events = subscribe(session, "/topic/channel." + channelId);
 
-        session.send("/app/channel." + channelId + "/typing", "");
+        session.send("/app/channel." + channelId + "/typing", Map.of());
 
         assertNotNull(awaitContaining(events, "TYPING"));
         session.disconnect();
@@ -199,7 +199,7 @@ class WebSocketIT {
 
     private StompSession connect(String token) throws Exception {
         WebSocketStompClient client = new WebSocketStompClient(new StandardWebSocketClient());
-        client.setMessageConverter(new StringMessageConverter());
+        client.setMessageConverter(new MappingJackson2MessageConverter());
 
         StompHeaders connectHeaders = new StompHeaders();
         if (token != null) {
@@ -215,12 +215,12 @@ class WebSocketIT {
         session.subscribe(destination, new StompFrameHandler() {
             @Override
             public Type getPayloadType(StompHeaders headers) {
-                return String.class;
+                return JsonNode.class;
             }
 
             @Override
             public void handleFrame(StompHeaders headers, Object payload) {
-                queue.add((String) payload);
+                queue.add(payload.toString());
             }
         });
         // Subscriptions are registered asynchronously on the server; give it a moment before triggering events.

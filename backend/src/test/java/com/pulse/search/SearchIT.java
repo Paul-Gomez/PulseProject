@@ -67,8 +67,18 @@ class SearchIT extends AbstractIntegrationTest {
         send(token, channelId, "descuento del 100% hoy");
         send(token, channelId, "descuento de 1000 euros");
 
-        assertEquals(1, search(token, "q=100%25&workspaceId=" + workspaceId).get("totalElements").asInt());
-        assertEquals(0, search(token, "q=%25%25%25&workspaceId=" + workspaceId).get("totalElements").asInt());
+        assertEquals(1, searchText(token, "100%", workspaceId).get("totalElements").asInt());
+        assertEquals(0, searchText(token, "%%%", workspaceId).get("totalElements").asInt());
+    }
+
+    private JsonNode searchText(String token, String text, String workspaceId) throws Exception {
+        String body = mockMvc.perform(get("/api/v1/search/messages")
+                        .param("q", text)
+                        .param("workspaceId", workspaceId)
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        return objectMapper.readTree(body);
     }
 
     @Test
