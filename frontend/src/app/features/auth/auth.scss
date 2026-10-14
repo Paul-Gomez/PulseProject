@@ -1,0 +1,31 @@
+:host {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 1rem;
+}
+
+.card {
+  width: 100%;
+  max-width: 400px;
+}
+
+.brand {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--primary);
+  margin-bottom: 0.25rem;
+}
+
+.subtitle {
+  color: var(--text-muted);
+  margin-bottom: 1.5rem;
+}
+
+.links {
+  margin-top: 1.25rem;
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+}
