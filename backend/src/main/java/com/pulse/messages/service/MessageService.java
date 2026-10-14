@@ -1,6 +1,7 @@
 package com.pulse.messages.service;
 
 import com.pulse.channels.entity.Channel;
+import com.pulse.channels.entity.ChannelType;
 import com.pulse.channels.repository.ChannelRepository;
 import com.pulse.channels.service.ChannelAccessService;
 import com.pulse.common.exception.ApiException;
@@ -55,6 +56,11 @@ public class MessageService {
         channelAccessService.requireAccess(channel, authorId);
         if (channel.getArchivedAt() != null) {
             throw ApiException.conflict(ErrorCode.CHANNEL_ARCHIVED, "This channel is archived");
+        }
+        // Announcement channels are read-only for regular members: only moderators and above can post.
+        if (channel.getType() == ChannelType.ANNOUNCEMENT && !workspaceAuthorizationService.hasPermission(
+                channel.getWorkspaceId(), authorId, "MESSAGE_DELETE_ANY")) {
+            throw ApiException.forbidden(ErrorCode.ACCESS_DENIED, "Only moderators can post in announcement channels");
         }
 
         if (request.parentMessageId() != null) {
