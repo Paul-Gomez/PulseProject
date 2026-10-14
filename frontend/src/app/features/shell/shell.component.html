@@ -1,0 +1,107 @@
+<div class="layout" [class.sidebar-open]="sidebarOpen()">
+  <!-- Workspace rail -->
+  <nav class="rail" aria-label="Workspaces">
+    <a class="rail-item home" routerLink="/" title="Inicio" [routerLinkActiveOptions]="{ exact: true }" routerLinkActive="active">P</a>
+    @for (workspace of state.workspaces(); track workspace.id) {
+      <a class="rail-item" [routerLink]="['/w', workspace.id]" [title]="workspace.name"
+         [class.active]="state.current()?.id === workspace.id">
+        {{ workspace.name.charAt(0).toUpperCase() }}
+      </a>
+    }
+    <a class="rail-item add" routerLink="/" title="Crear workspace">+</a>
+  </nav>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    @if (state.current(); as workspace) {
+      <div class="sidebar-header">
+        <span class="workspace-name">{{ workspace.name }}</span>
+        <a class="btn btn-ghost" [routerLink]="['/w', workspace.id, 'settings']" title="Ajustes">⚙</a>
+      </div>
+
+      <div class="section-title">
+        <span>Canales</span>
+        <button class="btn btn-ghost" (click)="creatingChannel.set(!creatingChannel())" title="Nuevo canal">+</button>
+      </div>
+
+      @if (creatingChannel()) {
+        <form class="new-channel" (ngSubmit)="createChannel()">
+          <input class="input" name="name" [ngModel]="newChannelName()" (ngModelChange)="newChannelName.set($event)" placeholder="nombre-del-canal" maxlength="80" />
+          <label class="check"><input type="checkbox" name="private" [ngModel]="newChannelPrivate()" (ngModelChange)="newChannelPrivate.set($event)" /> Privado</label>
+          @if (channelError()) {
+            <span class="field-error">{{ channelError() }}</span>
+          }
+          <button class="btn btn-block" type="submit">Crear</button>
+        </form>
+      }
+
+      @if (state.loading()) {
+        @for (i of [1, 2, 3]; track i) {
+          <div class="skeleton channel-skeleton"></div>
+        }
+      } @else {
+        @for (channel of state.channels(); track channel.id) {
+          <a class="channel" [routerLink]="['/w', workspace.id, 'c', channel.id]" routerLinkActive="active">
+            <span class="hash">{{ channel.isPrivate ? '🔒' : '#' }}</span> {{ channel.name }}
+          </a>
+        } @empty {
+          <p class="sidebar-empty">Todavía no hay canales.</p>
+        }
+      }
+
+      <div class="section-title"><span>Miembros · {{ state.members().length }}</span></div>
+      <div class="members">
+        @for (member of state.members(); track member.id) {
+          <div class="member">
+            <app-avatar [name]="member.user.displayName" [avatarUrl]="member.user.avatarUrl" [size]="24"
+                        [online]="state.onlineUserIds().has(member.userId)" />
+            <span>{{ member.user.displayName }}</span>
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="sidebar-header"><span class="workspace-name">Pulse</span></div>
+      <p class="sidebar-empty">Elige un workspace o crea uno nuevo.</p>
+    }
+
+    <div class="section-title"><span>Mensajes privados</span></div>
+    <a class="channel" routerLink="/dm" routerLinkActive="active">💬 Conversaciones</a>
+  </aside>
+
+  <!-- Main area -->
+  <div class="main">
+    <header class="topbar">
+      <button class="btn btn-ghost menu" (click)="sidebarOpen.set(!sidebarOpen())" aria-label="Menú">☰</button>
+      <a class="btn btn-ghost" routerLink="/search" title="Buscar">🔍 <span class="label">Buscar</span></a>
+      <span class="spacer"></span>
+      @if (!realtime.connected()) {
+        <span class="offline" title="Reconectando con el servidor...">● sin conexión</span>
+      }
+      <a class="btn btn-ghost bell" routerLink="/notifications" title="Notificaciones">
+        🔔
+        @if (notifications.unreadCount() > 0) {
+          <span class="badge">{{ notifications.unreadCount() }}</span>
+        }
+      </a>
+      <button class="btn btn-ghost" (click)="theme.toggle()" [title]="theme.dark() ? 'Modo claro' : 'Modo oscuro'">
+        {{ theme.dark() ? '☀' : '🌙' }}
+      </button>
+      @if (auth.currentUser(); as user) {
+        <a routerLink="/profile" class="profile-link" title="Perfil">
+          <app-avatar [name]="user.displayName" [avatarUrl]="user.avatarUrl" [size]="30" />
+        </a>
+      }
+      <button class="btn btn-ghost" (click)="logout()" title="Cerrar sesión">⏻</button>
+    </header>
+
+    <main class="content">
+      <router-outlet />
+    </main>
+  </div>
+
+  <div class="backdrop" (click)="sidebarOpen.set(false)"></div>
+
+  @if (toast(); as notification) {
+    <a class="toast" routerLink="/notifications" (click)="toast.set(null)">🔔 {{ notification.text }}</a>
+  }
+</div>

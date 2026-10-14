@@ -1,0 +1,272 @@
+.layout {
+  display: grid;
+  grid-template-columns: 64px 240px 1fr;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.rail {
+  background: var(--sidebar);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 0;
+  overflow-y: auto;
+}
+
+.rail-item {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--sidebar-active);
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+  transition: border-radius 0.15s, background 0.15s;
+
+  &:hover {
+    border-radius: 16px;
+    text-decoration: none;
+  }
+
+  &.active,
+  &.home {
+    background: var(--primary);
+  }
+
+  &.add {
+    background: transparent;
+    border: 2px dashed var(--sidebar-text);
+    color: var(--sidebar-text);
+  }
+}
+
+.sidebar {
+  background: var(--sidebar);
+  color: var(--sidebar-text);
+  border-left: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding-bottom: 1rem;
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.9rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+
+  .btn-ghost {
+    color: var(--sidebar-text);
+  }
+}
+
+.workspace-name {
+  color: #fff;
+  font-weight: 700;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1rem 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+
+  .btn-ghost {
+    color: var(--sidebar-text);
+    padding: 0 0.4rem;
+  }
+}
+
+.channel {
+  display: block;
+  padding: 0.35rem 1rem;
+  margin: 0 0.5rem;
+  border-radius: 6px;
+  color: var(--sidebar-text);
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  &:hover {
+    background: var(--sidebar-active);
+    text-decoration: none;
+  }
+
+  &.active {
+    background: var(--primary);
+    color: #fff;
+  }
+}
+
+.hash {
+  opacity: 0.7;
+}
+
+.channel-skeleton {
+  height: 22px;
+  margin: 0.35rem 1rem;
+  opacity: 0.3;
+}
+
+.new-channel {
+  padding: 0.25rem 1rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+
+  .input {
+    padding: 0.4rem 0.6rem;
+  }
+}
+
+.check {
+  font-size: 0.85rem;
+}
+
+.sidebar-empty {
+  padding: 0 1rem;
+  font-size: 0.85rem;
+  opacity: 0.7;
+}
+
+.members {
+  padding: 0 0.5rem;
+}
+
+.member {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0.5rem;
+  font-size: 0.9rem;
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  height: 52px;
+  padding: 0 0.75rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.menu {
+  display: none;
+}
+
+.bell {
+  position: relative;
+
+  .badge {
+    position: absolute;
+    top: -2px;
+    right: -4px;
+  }
+}
+
+.offline {
+  color: var(--danger);
+  font-size: 0.8rem;
+  margin-right: 0.5rem;
+}
+
+.profile-link {
+  display: flex;
+  margin: 0 0.25rem;
+}
+
+.content {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.backdrop {
+  display: none;
+}
+
+.toast {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  max-width: 340px;
+  padding: 0.8rem 1rem;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  z-index: 50;
+}
+
+/* Mobile: the rail and sidebar slide in over the content */
+@media (max-width: 800px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .rail,
+  .sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    z-index: 30;
+    transform: translateX(-120%);
+    transition: transform 0.2s;
+  }
+
+  .rail {
+    left: 0;
+    width: 64px;
+  }
+
+  .sidebar {
+    left: 64px;
+    width: 240px;
+    // It starts 64px to the right (after the rail), so it has to move further to be fully hidden.
+    transform: translateX(calc(-100% - 64px));
+  }
+
+  .sidebar-open .rail,
+  .sidebar-open .sidebar {
+    transform: none;
+  }
+
+  .sidebar-open .backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 20;
+  }
+
+  .menu {
+    display: inline-flex;
+  }
+
+  .label {
+    display: none;
+  }
+}
