@@ -35,6 +35,9 @@ spring:
 
 server:
   port: ${SERVER_PORT:8080}
+  # Behind nginx: take the client IP from X-Forwarded-For, but only when the request comes from an
+  # internal network (Docker). A client on the internet cannot fake its IP with that header.
+  forward-headers-strategy: native
 
 pulse:
   security:

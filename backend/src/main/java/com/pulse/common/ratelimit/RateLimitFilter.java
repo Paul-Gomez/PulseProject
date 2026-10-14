@@ -20,7 +20,8 @@ import java.util.Set;
 
 /**
  * Limits how many times the same IP can hit login/register per minute.
- * Uses the connection's address on purpose: X-Forwarded-For can be forged unless a trusted proxy sets it.
+ * getRemoteAddr() is the real client IP: Tomcat only replaces it with X-Forwarded-For when the request
+ * comes from a trusted internal proxy (server.forward-headers-strategy=native), so it cannot be forged.
  */
 @Component
 @RequiredArgsConstructor
