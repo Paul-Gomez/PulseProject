@@ -60,10 +60,29 @@ jobs:
       - name: Production build
         run: npx ng build --configuration production
 
+  mobile:
+    name: Mobile (build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+
+      - run: npm ci
+      - name: Production build
+        run: npx ng build --configuration production
+
   docker:
     name: Docker images
     runs-on: ubuntu-latest
-    needs: [backend, frontend]
+    needs: [backend, frontend, mobile]
     steps:
       - uses: actions/checkout@v4
       - name: Build backend image
