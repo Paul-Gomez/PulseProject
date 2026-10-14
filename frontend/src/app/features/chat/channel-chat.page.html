@@ -1,0 +1,68 @@
+<header class="chat-header">
+  @if (channel(); as current) {
+    <h2>{{ current.isPrivate ? '🔒' : '#' }} {{ current.name }}</h2>
+    @if (current.type === 'ANNOUNCEMENT') {
+      <span class="tag">Anuncios</span>
+    }
+  } @else {
+    <div class="skeleton" style="height: 22px; width: 160px"></div>
+  }
+</header>
+
+@if (error()) {
+  <div class="alert alert-error banner">
+    {{ error() }}
+    <button class="btn btn-ghost" (click)="error.set(null)">✕</button>
+  </div>
+}
+
+<div class="scroller" #scroller (scroll)="onScroll()">
+  @if (loading()) {
+    @for (i of [1, 2, 3, 4, 5]; track i) {
+      <div class="skeleton-row">
+        <div class="skeleton avatar"></div>
+        <div class="lines">
+          <div class="skeleton" style="height: 12px; width: 120px"></div>
+          <div class="skeleton" style="height: 12px; width: 70%; margin-top: 6px"></div>
+        </div>
+      </div>
+    }
+  } @else {
+    @if (hasMore()) {
+      <div class="load-more"><button class="btn btn-secondary" (click)="loadOlder()">Cargar mensajes anteriores</button></div>
+    }
+    @for (message of messages(); track message.id) {
+      <app-message-item
+        [message]="message"
+        [author]="state.membersById().get(message.authorId)"
+        [parent]="message.parentMessageId ? messagesById().get(message.parentMessageId) : undefined"
+        [currentUserId]="auth.currentUser()?.id ?? ''"
+        [currentUsername]="auth.currentUser()?.username ?? ''"
+        [canModerate]="canModerate()"
+        (react)="toggleReaction(message, $event)"
+        (reply)="replyTo.set($event)"
+        (edit)="edit($event)"
+        (remove)="remove($event)"
+        (download)="download($event)" />
+    } @empty {
+      <div class="empty-state">
+        <div class="icon">💬</div>
+        <p>Todavía no hay mensajes. ¡Escribe el primero!</p>
+      </div>
+    }
+  }
+</div>
+
+@if (unseenCount() > 0) {
+  <button class="btn new-messages" (click)="jumpToNewest()">↓ {{ unseenCount() }} mensajes nuevos</button>
+}
+
+<div class="typing">{{ typingText() }}</div>
+
+<app-composer
+  [placeholder]="isAnnouncementLocked() ? 'Solo moderadores pueden publicar anuncios' : 'Mensaje en #' + (channel()?.name ?? '')"
+  [disabled]="isAnnouncementLocked()"
+  [replyingTo]="replyTo()?.content ?? null"
+  (send)="send($event)"
+  (typing)="onTyping()"
+  (cancelReply)="replyTo.set(null)" />
