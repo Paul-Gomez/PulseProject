@@ -1,0 +1,123 @@
+<div class="page">
+  <h1>Ajustes de {{ state.current()?.name }}</h1>
+
+  @if (message()) {
+    <div class="alert alert-success">{{ message() }}</div>
+  }
+  @if (error()) {
+    <div class="alert alert-error">{{ error() }}</div>
+  }
+
+  @if (canAdmin()) {
+    <form class="card section" (ngSubmit)="save()">
+      <h3>Datos del workspace</h3>
+      <div class="field">
+        <label for="name">Nombre</label>
+        <input id="name" class="input" name="name" [ngModel]="name()" (ngModelChange)="name.set($event)" maxlength="100" required />
+      </div>
+      <div class="field">
+        <label for="description">Descripción</label>
+        <input id="description" class="input" name="description" [ngModel]="description()" (ngModelChange)="description.set($event)" maxlength="500" />
+      </div>
+      <button class="btn" type="submit">Guardar</button>
+    </form>
+
+    <form class="card section" (ngSubmit)="invite()">
+      <h3>Invitar a alguien</h3>
+      <p class="muted small">La persona tiene que tener ya una cuenta en Pulse.</p>
+      <div class="inline">
+        <input class="input" type="email" name="email" [ngModel]="inviteEmail()" (ngModelChange)="inviteEmail.set($event)" placeholder="email@ejemplo.com" required />
+        <button class="btn" type="submit" [disabled]="!inviteEmail().trim()">Invitar</button>
+      </div>
+    </form>
+  }
+
+  <div class="card section">
+    <h3>Miembros</h3>
+    <table class="table">
+      <thead>
+        <tr><th>Persona</th><th>Rol</th><th></th></tr>
+      </thead>
+      <tbody>
+        @for (member of state.members(); track member.id) {
+          <tr>
+            <td>
+              <div class="who">
+                <app-avatar [name]="member.user.displayName" [avatarUrl]="member.user.avatarUrl" [size]="26"
+                            [online]="state.onlineUserIds().has(member.userId)" />
+                <span>{{ member.user.displayName }} <span class="muted small">&#64;{{ member.user.username }}</span></span>
+              </div>
+            </td>
+            <td>
+              @if (canAdmin() && canManage(member)) {
+                <select class="input" [ngModel]="member.roleName" (ngModelChange)="changeRole(member, $event)">
+                  <option [value]="member.roleName">{{ member.roleName }}</option>
+                  @for (role of assignableRoles(); track role) {
+                    @if (role !== member.roleName) {
+                      <option [value]="role">{{ role }}</option>
+                    }
+                  }
+                </select>
+              } @else {
+                <span class="tag">{{ member.roleName }}</span>
+              }
+            </td>
+            <td>
+              @if (canModerate() && canManage(member)) {
+                <button class="btn btn-ghost" (click)="removeMember(member)">Expulsar</button>
+                <button class="btn btn-ghost" (click)="ban(member)">Banear</button>
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  @if (canModerate()) {
+    <div class="card section">
+      <h3>Usuarios baneados</h3>
+      @for (ban of bans(); track ban.userId) {
+        <div class="row">
+          <span>{{ state.displayName(ban.userId) === 'Usuario' ? ban.userId : state.displayName(ban.userId) }}</span>
+          <span class="muted small">{{ ban.reason || 'Sin motivo' }} · {{ ban.createdAt | date: 'short' }}</span>
+          <span class="spacer"></span>
+          <button class="btn btn-ghost" (click)="unban(ban)">Quitar ban</button>
+        </div>
+      } @empty {
+        <p class="muted">Nadie está baneado.</p>
+      }
+    </div>
+  }
+
+  @if (canAdmin()) {
+    <div class="card section">
+      <h3>Auditoría</h3>
+      <table class="table">
+        <thead>
+          <tr><th>Fecha</th><th>Quién</th><th>Acción</th><th>Detalles</th></tr>
+        </thead>
+        <tbody>
+          @for (log of auditLogs(); track log.id) {
+            <tr>
+              <td class="small">{{ log.createdAt | date: 'short' }}</td>
+              <td>{{ log.actorUsername }}</td>
+              <td><span class="tag">{{ log.action }}</span></td>
+              <td class="small muted">{{ log.details }}</td>
+            </tr>
+          } @empty {
+            <tr><td colspan="4" class="muted">Sin acciones registradas.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  @if (isOwner()) {
+    <div class="card section danger">
+      <h3>Zona peligrosa</h3>
+      <p class="muted small">Borrar el workspace elimina todos sus canales y mensajes. No se puede deshacer.</p>
+      <button class="btn btn-danger" (click)="deleteWorkspace()">Borrar workspace</button>
+    </div>
+  }
+</div>
