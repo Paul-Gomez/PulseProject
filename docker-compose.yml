@@ -59,7 +59,7 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set in .env}
-      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:4200,http://localhost:8100}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:4200,http://localhost:8100,http://localhost:3000}
       MINIO_ENDPOINT: http://storage:9000
       MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-pulse}
       MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-pulsesecret}
