@@ -2,10 +2,11 @@
 
 Plataforma de comunicación en tiempo real, inspirada en Slack y Discord: comunidades (workspaces), canales públicos y privados, mensajes en directo, mensajes privados, notificaciones, archivos y búsqueda.
 
-Proyecto de portfolio con un backend en **Spring Boot**, una web en **Angular** y una app móvil en **Ionic**, las dos consumiendo la misma API REST y el mismo WebSocket.
+Proyecto de portfolio con un backend en **Spring Boot** y tres clientes que consumen la misma API REST y el mismo WebSocket: una web en **Angular**, una web en **Next.js (React)** y una app móvil en **Ionic**.
 
 - **Backend:** Java 21 · Spring Boot 3 · Spring Security + JWT · PostgreSQL + Flyway · Redis · WebSocket/STOMP · almacenamiento S3 (RustFS)
-- **Web:** Angular 22 · signals · RxJS · STOMP
+- **Web (Angular):** Angular 22 · signals · RxJS · STOMP. Es el cliente completo, con todas las funcionalidades.
+- **Web (Next.js):** Next.js 16 (App Router) · React 19 · TypeScript · STOMP. Un segundo cliente con login, workspaces y chat en tiempo real.
 - **Móvil:** Ionic 9 · Angular · Capacitor
 - **Calidad:** más de 110 tests de integración con Testcontainers · tests unitarios del frontend · GitHub Actions · Docker Compose
 
@@ -57,6 +58,7 @@ Un **monolito modular**: una sola aplicación Spring Boot organizada por dominio
 flowchart LR
     subgraph Clientes
         WEB[Angular web]
+        NEXT[Next.js web]
         MOB[Ionic móvil]
     end
 
@@ -70,6 +72,7 @@ flowchart LR
 
     WEB -- HTTPS /api, /ws --> NGINX
     NGINX --> API
+    NEXT -- REST por rewrite, WebSocket directo --> API
     MOB -- REST + WebSocket --> API
     API --> PG
     API --> RD
@@ -97,6 +100,7 @@ Cada módulo del backend (`identity`, `users`, `workspaces`, `channels`, `messag
 | MapStruct | DTOs | Evita escribir a mano el mapeo entidad → DTO |
 | Testcontainers | Tests | Los tests usan un Postgres, Redis y RustFS reales, no mocks |
 | Angular + signals | Web | Tipado fuerte; signals para el estado de la UI y RxJS para HTTP/WebSocket |
+| Next.js + React | Web | El mismo producto con el framework más usado del mercado; demuestra que la API no depende de ningún cliente |
 | Ionic + Capacitor | Móvil | Reutiliza Angular y TypeScript; Capacitor permite generar la app Android |
 
 No he usado Elasticsearch: para este volumen, PostgreSQL con un índice trigram (`pg_trgm`) basta para buscar por texto parcial.
@@ -116,6 +120,7 @@ No he usado Elasticsearch: para este volumen, PostgreSQL con un índice trigram 
 │   ├── src/main/resources/db/migration/   migraciones Flyway (V1..V13)
 │   └── src/test/java/       tests de integración (Testcontainers)
 ├── frontend/                Angular (core/ = servicios, features/ = pantallas)
+├── web-next/                Next.js + React (lib/ = API, auth y tiempo real; components/; app/ = rutas)
 ├── mobile/                  Ionic + Capacitor
 ├── docker-compose.yml
 ├── .env.example
@@ -154,6 +159,11 @@ cd backend && mvn spring-boot:run -Dspring-boot.run.profiles=dev
 
 # Web (ng serve redirige /api y /ws al backend en el 8080)
 cd frontend && npm install && npm start
+
+# Web en Next.js (http://localhost:3000). Next redirige /api al backend;
+# si tu backend no está en el 8080, crea web-next/.env.local con
+# BACKEND_URL=http://localhost:PUERTO y NEXT_PUBLIC_WS_URL=ws://localhost:PUERTO/ws
+cd web-next && npm install && npm run dev
 
 # Móvil en el navegador (http://localhost:8100)
 cd mobile && npm install && npx ng serve --port 8100
@@ -322,6 +332,7 @@ Si Redis no responde, el rate limiting **deja pasar** las peticiones: prefiero q
 ```bash
 cd backend && mvn test                     # necesita Docker (Testcontainers)
 cd frontend && npx ng test --watch=false
+cd web-next && npm test
 ```
 
 - **Backend (más de 110 tests):** casi todos son de integración, con **MockMvc** contra un PostgreSQL real (Testcontainers), más Redis y RustFS reales donde hace falta. Prueban comportamiento, no detalles internos. Por ejemplo:
@@ -330,7 +341,8 @@ cd frontend && npx ng test --watch=false
   - quien sale de un workspace pierde el acceso a sus canales privados;
   - dos personas que abren el mismo chat a la vez acaban en una sola conversación;
   - un mensaje enviado por REST llega por WebSocket a los suscritos, y alguien de fuera no recibe nada.
-- **Frontend:** tests unitarios del interceptor (añadir el token, refresh y reintento, logout si el refresh falla) y de los mensajes de error.
+- **Frontend Angular:** tests unitarios del interceptor (añadir el token, refresh y reintento, logout si el refresh falla) y de los mensajes de error.
+- **Frontend Next.js (Vitest):** el cliente de la API (token, refresh y reintento, fin de sesión) y la lógica del chat (no duplicar mensajes, aplicar reacciones sin mutar el estado).
 
 ---
 
@@ -339,9 +351,10 @@ cd frontend && npx ng test --watch=false
 [`.github/workflows/ci.yml`](.github/workflows/ci.yml) se ejecuta en cada push y pull request a `main`:
 
 1. Backend: `mvn verify` (tests con Testcontainers).
-2. Frontend: tests unitarios y build de producción.
-3. Móvil: build de producción.
-4. Construcción de las imágenes Docker, solo si todo lo anterior pasa.
+2. Frontend Angular: tests unitarios y build de producción.
+3. Frontend Next.js: lint, tests y build.
+4. Móvil: build de producción.
+5. Construcción de las imágenes Docker, solo si todo lo anterior pasa.
 
 Para que un PR no se pueda fusionar con tests en rojo, hay que activar en GitHub *Settings → Branches → Branch protection* para `main`, con estos *checks* como obligatorios.
 
@@ -373,6 +386,7 @@ flowchart TB
 - **Presencia en Redis con caducidad:** sobrevive a reinicios y a varias instancias del backend sin dejar usuarios "online" para siempre.
 - **Búsqueda con SQL directo:** los filtros son opcionales y combinables, y la regla de visibilidad se lee entera en una sola consulta.
 - **Tokens en `localStorage`:** sencillo y la sesión sobrevive a una recarga. La contrapartida es que un XSS podría leerlos; por eso el access token dura poco y Angular escapa todo el contenido. La alternativa sería guardar el refresh token en una cookie `HttpOnly`.
+- **Next.js como cliente del lado del navegador:** como la sesión vive en el navegador, el área privada carga sus datos en el cliente, y las páginas privadas declaran `instant = false` para indicar a Next que no pueden pintarse al instante desde el servidor. Next redirige `/api` al backend (sin CORS); el WebSocket va directo porque los rewrites no hacen de proxy de WebSockets. Con una cookie HttpOnly podría usar Server Components y renderizar en el servidor.
 - **La app móvil copia la capa `core` de la web:** lo único que cambia es la URL del backend. Con más tiempo la convertiría en una librería compartida (por ejemplo, con un workspace de Nx).
 
 ---
@@ -382,6 +396,7 @@ flowchart TB
 - Los archivos subidos que nunca se envían no se limpian solos (faltaría una tarea programada).
 - El avatar es una URL; no hay subida de imagen de perfil.
 - Las conversaciones privadas no tienen indicador de "escribiendo" ni adjuntos.
+- El frontend de Next.js cubre login, registro, workspaces y chat en tiempo real; no tiene mensajes privados, búsqueda ni administración, que sí están en el de Angular.
 - El endpoint de presencia consulta Redis una vez por miembro; en workspaces grandes convendría agrupar las consultas en una sola.
 - Con varias instancias del backend, el broker STOMP en memoria debería sustituirse por uno externo (RabbitMQ o un *relay*) para que los mensajes lleguen a usuarios conectados a otra instancia.
 - Faltan tests end-to-end del frontend (por ejemplo, con Playwright).
