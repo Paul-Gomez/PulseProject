@@ -25,7 +25,7 @@ export function Avatar({ name, size = 32, online }: AvatarProps) {
     <span
       style={{
         position: "relative", display: "inline-flex", alignItems: "center", justifyContent: "center",
-        width: size, height: size, borderRadius: "50%", background: colorFor(name), color: "#fff",
+        width: size, height: size, borderRadius: 3, background: colorFor(name), color: "#fff",
         fontWeight: 700, fontSize: size * 0.4, flexShrink: 0,
       }}
       aria-hidden
@@ -34,7 +34,7 @@ export function Avatar({ name, size = 32, online }: AvatarProps) {
       {online !== undefined && (
         <span
           style={{
-            position: "absolute", right: -1, bottom: -1, width: 9, height: 9, borderRadius: "50%",
+            position: "absolute", right: -1, bottom: -1, width: 9, height: 9, borderRadius: 3,
             background: online ? "#2f9e5b" : "#9aa1ad", border: "2px solid var(--surface)",
           }}
         />

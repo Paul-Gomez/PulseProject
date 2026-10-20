@@ -80,7 +80,7 @@
 .reaction {
   border: 1px solid var(--border);
   background: var(--surface);
-  border-radius: 999px;
+  border-radius: 3px;
   padding: 0.1rem 0.5rem;
   cursor: pointer;
   font: inherit;

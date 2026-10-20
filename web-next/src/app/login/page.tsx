@@ -1,5 +1,6 @@
 "use client";
 
+import { Logo } from "@/components/Logo";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
@@ -35,7 +36,7 @@ export default function LoginPage() {
   return (
     <main className={styles.page}>
       <form className={`card ${styles.card}`} onSubmit={handleSubmit}>
-        <div className={styles.brand}>Pulse</div>
+        <div className={styles.brand}><Logo size={34} />Pulse</div>
         <p className={styles.subtitle}>Inicia sesión para continuar</p>
 
         {error && <div className="alert">{error}</div>}

@@ -1,5 +1,6 @@
 "use client";
 
+import { Logo } from "@/components/Logo";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
@@ -55,7 +56,7 @@ export default function RegisterPage() {
   return (
     <main className={styles.page}>
       <form className={`card ${styles.card}`} onSubmit={handleSubmit} noValidate>
-        <div className={styles.brand}>Pulse</div>
+        <div className={styles.brand}><Logo size={34} />Pulse</div>
         <p className={styles.subtitle}>Crea tu cuenta</p>
         {error && <div className="alert">{error}</div>}
         {field("displayName", "Nombre")}

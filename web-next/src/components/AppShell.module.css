@@ -8,34 +8,55 @@
 
 .layout {
   display: grid;
-  grid-template-columns: 64px 240px 1fr;
+  grid-template-columns: 72px 248px 1fr;
   height: 100vh;
   overflow: hidden;
 }
 
+/* Far-left column with one tile per workspace. */
 .rail {
   background: var(--sidebar);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 0;
+  gap: 0.6rem;
+  padding: 0.9rem 0;
 }
 
 .railItem {
-  width: 42px;
-  height: 42px;
-  border-radius: 12px;
+  position: relative;
+  width: 46px;
+  height: 46px;
+  border-radius: 3px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: var(--sidebar-active);
   color: #fff;
   font-weight: 700;
+  transition: border-radius 0.2s, background-color 0.2s, transform 0.15s;
 }
 
-.railItem.active {
+.railItem:hover {
+  border-radius: 3px;
   background: var(--primary);
+  transform: translateY(-1px);
+}
+
+/* White pill on the left edge marks the workspace you are in. */
+.railItem.active {
+  border-radius: 3px;
+  background: var(--primary);
+}
+
+.railItem.active::before {
+  content: "";
+  position: absolute;
+  left: -14px;
+  width: 4px;
+  height: 22px;
+  border-radius: 0;
+  background: #fff;
 }
 
 .sidebar {
@@ -44,56 +65,76 @@
   display: flex;
   flex-direction: column;
   overflow-y: auto;
-  padding-bottom: 1rem;
+  padding-bottom: 0;
 }
 
 .sidebarHeader {
-  padding: 0.9rem 1rem;
+  padding: 1rem 1.1rem;
   color: #fff;
   font-weight: 700;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  font-size: 0.98rem;
+  letter-spacing: -0.01em;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .sectionTitle {
-  padding: 1rem 1rem 0.25rem;
-  font-size: 0.75rem;
+  padding: 1.1rem 1.1rem 0.35rem;
+  font-size: 0.7rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.08em;
+  opacity: 0.65;
 }
 
 .channel {
-  display: block;
-  padding: 0.35rem 1rem;
-  margin: 0 0.5rem;
-  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.38rem 0.7rem;
+  margin: 1px 0.5rem;
+  border-radius: 3px;
   color: var(--sidebar-text);
+  font-size: 0.93rem;
+  transition: background-color 0.15s, color 0.15s;
 }
 
 .channel:hover {
   background: var(--sidebar-active);
+  color: #fff;
 }
 
-.channelActive {
+.channelActive,
+.channelActive:hover {
   background: var(--primary);
   color: #fff;
 }
 
+.channel span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .channelSkeleton {
-  height: 22px;
+  height: 26px;
   margin: 0.35rem 1rem;
   opacity: 0.3;
 }
 
 .newChannel {
-  padding: 0.4rem 0.5rem 0;
+  padding: 0.5rem 0.6rem 0;
 }
 
 .newChannel input {
-  padding: 0.35rem 0.6rem;
+  padding: 0.4rem 0.65rem;
   background: var(--sidebar-active);
   border-color: transparent;
   color: #fff;
+  font-size: 0.9rem;
+}
+
+.newChannel input::placeholder {
+  color: var(--sidebar-text);
 }
 
 .error {
@@ -104,13 +145,47 @@
 .member {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.3rem 1rem;
+  gap: 0.6rem;
+  padding: 0.3rem 1.1rem;
   font-size: 0.9rem;
 }
 
+/* Pinned to the bottom of the sidebar: who is signed in, and that they are online. */
+.footer {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.8rem 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--sidebar-active);
+}
+
+.identity {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  font-size: 0.82rem;
+  line-height: 1.25;
+}
+
+.identity strong {
+  color: #fff;
+  font-size: 0.9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.identity span {
+  opacity: 0.6;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .hint {
-  padding: 0 1rem;
+  padding: 0 1.1rem;
   font-size: 0.85rem;
   opacity: 0.7;
 }
@@ -125,32 +200,36 @@
 .topbar {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
-  height: 52px;
-  padding: 0 0.75rem;
+  gap: 0.35rem;
+  height: 60px;
+  padding: 0 0.9rem;
   border-bottom: 1px solid var(--border);
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  backdrop-filter: blur(10px);
 }
 
 .menu {
   display: none;
 }
 
-.bell {
-  position: relative;
-  padding: 0 0.5rem;
-}
-
+/* The notification count sits on the top-right corner of the bell and pops when it changes. */
 .badge {
   position: absolute;
-  top: -6px;
-  right: -2px;
+  top: 4px;
+  right: 2px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: var(--danger);
   color: #fff;
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 700;
-  border-radius: 999px;
-  padding: 0 0.35rem;
+  border-radius: 3px;
+  box-shadow: 0 0 0 2px var(--surface);
+  animation: pop 0.35s var(--ease);
 }
 
 .content {
@@ -159,6 +238,7 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  animation: enter 0.3s var(--ease);
 }
 
 .backdrop {
@@ -176,19 +256,20 @@
     top: 0;
     bottom: 0;
     z-index: 30;
-    transition: transform 0.2s;
+    transition: transform 0.25s var(--ease);
   }
 
   .rail {
     left: 0;
-    width: 64px;
+    width: 72px;
     transform: translateX(-100%);
   }
 
   .sidebar {
-    left: 64px;
-    width: 240px;
-    transform: translateX(calc(-100% - 64px));
+    left: 72px;
+    width: 248px;
+    transform: translateX(calc(-100% - 72px));
+    box-shadow: 8px 0 30px rgba(0, 0, 0, 0.3);
   }
 
   .open .rail,
