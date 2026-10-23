@@ -1,6 +1,6 @@
 <header class="chat-header">
   @if (channel(); as current) {
-    <h2>{{ current.isPrivate ? '🔒' : '#' }} {{ current.name }}</h2>
+    <h2 class="title"><app-icon [name]="current.isPrivate ? 'lock' : 'hash'" [size]="18" /> {{ current.name }}</h2>
     @if (current.type === 'ANNOUNCEMENT') {
       <span class="tag">Anuncios</span>
     }
@@ -10,9 +10,9 @@
 </header>
 
 @if (error()) {
-  <div class="alert alert-error banner">
+  <div class="alert alert-error banner" role="alert">
     {{ error() }}
-    <button class="btn btn-ghost" (click)="error.set(null)">✕</button>
+    <button class="btn btn-ghost" (click)="error.set(null)" aria-label="Cerrar aviso"><app-icon name="x" [size]="16" /></button>
   </div>
 }
 
@@ -46,7 +46,7 @@
         (download)="download($event)" />
     } @empty {
       <div class="empty-state">
-        <div class="icon">💬</div>
+        <div class="icon"><app-icon name="message" [size]="40" /></div>
         <p>Todavía no hay mensajes. ¡Escribe el primero!</p>
       </div>
     }
@@ -54,7 +54,7 @@
 </div>
 
 @if (unseenCount() > 0) {
-  <button class="btn new-messages" (click)="jumpToNewest()">↓ {{ unseenCount() }} mensajes nuevos</button>
+  <button class="btn new-messages" (click)="jumpToNewest()"><app-icon name="arrow-down" [size]="16" /> {{ unseenCount() }} mensajes nuevos</button>
 }
 
 <div class="typing">{{ typingText() }}</div>

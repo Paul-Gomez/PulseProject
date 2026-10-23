@@ -8,10 +8,11 @@ import { errorMessage } from '../../core/errors';
 import { Conversation, UserSummary } from '../../core/models';
 import { WorkspaceState } from '../../core/state/workspace-state.service';
 import { AvatarComponent } from '../../shared/avatar.component';
+import { IconComponent } from '../../shared/icon.component';
 
 @Component({
   selector: 'app-conversations',
-  imports: [RouterLink, DatePipe, AvatarComponent],
+  imports: [RouterLink, DatePipe, AvatarComponent, IconComponent],
   template: `
     <div class="page">
       <h1>Mensajes privados</h1>
@@ -56,7 +57,7 @@ import { AvatarComponent } from '../../shared/avatar.component';
           </a>
         } @empty {
           <div class="empty-state">
-            <div class="icon">💬</div>
+            <div class="icon"><app-icon name="message" [size]="40" /></div>
             <p>Aún no tienes conversaciones.</p>
           </div>
         }

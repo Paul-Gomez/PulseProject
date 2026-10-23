@@ -6,14 +6,15 @@ import { WorkspaceApi } from '../../core/api/workspace.api';
 import { AuthService } from '../../core/auth/auth.service';
 import { errorMessage } from '../../core/errors';
 import { WorkspaceState } from '../../core/state/workspace-state.service';
+import { IconComponent } from '../../shared/icon.component';
 
 @Component({
   selector: 'app-home',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, IconComponent],
   template: `
     <div class="page">
       @if (auth.currentUser(); as user) {
-        <h1>Hola, {{ user.displayName }} 👋</h1>
+        <h1>Hola, {{ user.displayName }}</h1>
         @if (!user.emailVerified) {
           <div class="alert alert-error row">
             <span>Tu email aún no está verificado.</span>
@@ -39,7 +40,7 @@ import { WorkspaceState } from '../../core/state/workspace-state.service';
           </a>
         } @empty {
           <div class="empty-state">
-            <div class="icon">🏠</div>
+            <div class="icon"><app-icon name="home" [size]="40" /></div>
             <p>Todavía no perteneces a ningún workspace. Crea el primero.</p>
           </div>
         }

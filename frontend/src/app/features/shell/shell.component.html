@@ -16,7 +16,7 @@
     @if (state.current(); as workspace) {
       <div class="sidebar-header">
         <span class="workspace-name">{{ workspace.name }}</span>
-        <a class="btn btn-ghost" [routerLink]="['/w', workspace.id, 'settings']" title="Ajustes">⚙</a>
+        <a class="btn btn-ghost" [routerLink]="['/w', workspace.id, 'settings']" title="Ajustes" aria-label="Ajustes del workspace"><app-icon name="settings" /></a>
       </div>
 
       <div class="section-title">
@@ -42,7 +42,7 @@
       } @else {
         @for (channel of state.channels(); track channel.id) {
           <a class="channel" [routerLink]="['/w', workspace.id, 'c', channel.id]" routerLinkActive="active">
-            <span class="hash">{{ channel.isPrivate ? '🔒' : '#' }}</span> {{ channel.name }}
+            <app-icon class="hash" [name]="channel.isPrivate ? 'lock' : 'hash'" [size]="16" /> {{ channel.name }}
           </a>
         } @empty {
           <p class="sidebar-empty">Todavía no hay canales.</p>
@@ -65,33 +65,34 @@
     }
 
     <div class="section-title"><span>Mensajes privados</span></div>
-    <a class="channel" routerLink="/dm" routerLinkActive="active">💬 Conversaciones</a>
+    <a class="channel" routerLink="/dm" routerLinkActive="active"><app-icon class="hash" name="message" [size]="16" /> Conversaciones</a>
   </aside>
 
   <!-- Main area -->
   <div class="main">
     <header class="topbar">
-      <button class="btn btn-ghost menu" (click)="sidebarOpen.set(!sidebarOpen())" aria-label="Menú">☰</button>
-      <a class="btn btn-ghost" routerLink="/search" title="Buscar">🔍 <span class="label">Buscar</span></a>
+      <button class="btn btn-ghost menu" (click)="sidebarOpen.set(!sidebarOpen())" aria-label="Menú"><app-icon name="menu" [size]="22" /></button>
+      <a class="btn btn-ghost" routerLink="/search" title="Buscar" aria-label="Buscar"><app-icon name="search" [size]="20" /> <span class="label">Buscar</span></a>
       <span class="spacer"></span>
       @if (realtime.lost()) {
-        <span class="offline" title="Reconectando con el servidor...">● sin conexión</span>
+        <span class="offline" title="Reconectando con el servidor..." role="status"><span class="offline-dot"></span>Sin conexión</span>
       }
-      <a class="btn btn-ghost bell" routerLink="/notifications" title="Notificaciones">
-        🔔
+      <a class="btn btn-ghost bell" routerLink="/notifications" title="Notificaciones" aria-label="Notificaciones">
+        <app-icon name="bell" [size]="22" />
         @if (notifications.unreadCount() > 0) {
           <span class="badge">{{ notifications.unreadCount() }}</span>
         }
       </a>
-      <button class="btn btn-ghost" (click)="theme.toggle()" [title]="theme.dark() ? 'Modo claro' : 'Modo oscuro'">
-        {{ theme.dark() ? '☀' : '🌙' }}
+      <button class="btn btn-ghost" (click)="theme.toggle()" [title]="theme.dark() ? 'Modo claro' : 'Modo oscuro'"
+              [attr.aria-label]="theme.dark() ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'">
+        <app-icon [name]="theme.dark() ? 'sun' : 'moon'" [size]="22" />
       </button>
       @if (auth.currentUser(); as user) {
         <a routerLink="/profile" class="profile-link" title="Perfil">
           <app-avatar [name]="user.displayName" [avatarUrl]="user.avatarUrl" [size]="30" />
         </a>
       }
-      <button class="btn btn-ghost" (click)="logout()" title="Cerrar sesión">⏻</button>
+      <button class="btn btn-ghost" (click)="logout()" title="Cerrar sesión" aria-label="Cerrar sesión"><app-icon name="logout" [size]="22" /></button>
     </header>
 
     <main class="content">
@@ -102,6 +103,6 @@
   <div class="backdrop" (click)="sidebarOpen.set(false)"></div>
 
   @if (toast(); as notification) {
-    <a class="toast" routerLink="/notifications" (click)="toast.set(null)">🔔 {{ notification.text }}</a>
+    <a class="toast" routerLink="/notifications" (click)="toast.set(null)"><app-icon name="bell" [size]="16" /> {{ notification.text }}</a>
   }
 </div>

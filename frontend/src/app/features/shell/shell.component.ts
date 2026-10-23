@@ -11,10 +11,11 @@ import { NotificationState } from '../../core/state/notification-state.service';
 import { WorkspaceState } from '../../core/state/workspace-state.service';
 import { ThemeService } from '../../core/theme.service';
 import { AvatarComponent } from '../../shared/avatar.component';
+import { IconComponent } from '../../shared/icon.component';
 
 @Component({
   selector: 'app-shell',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, FormsModule, AvatarComponent],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, FormsModule, AvatarComponent, IconComponent],
   templateUrl: './shell.component.html',
   styleUrl: './shell.component.scss',
 })

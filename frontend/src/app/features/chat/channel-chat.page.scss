@@ -15,8 +15,15 @@
   background: var(--surface);
 
   h2 {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
     margin: 0;
     font-size: 1.05rem;
+
+    app-icon {
+      color: var(--muted);
+    }
   }
 }
 

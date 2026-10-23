@@ -9,19 +9,20 @@ import { errorMessage } from '../../core/errors';
 import { DirectMessage } from '../../core/models';
 import { RealtimeService } from '../../core/realtime/realtime.service';
 import { AvatarComponent } from '../../shared/avatar.component';
+import { IconComponent } from '../../shared/icon.component';
 import { ComposerComponent, ComposerSubmit } from '../chat/composer.component';
 
 @Component({
   selector: 'app-conversation-chat',
-  imports: [ComposerComponent, AvatarComponent, DatePipe, RouterLink],
+  imports: [ComposerComponent, AvatarComponent, DatePipe, RouterLink, IconComponent],
   template: `
     <header class="chat-header">
-      <a class="btn btn-ghost" routerLink="/dm">←</a>
+      <a class="btn btn-ghost" routerLink="/dm" aria-label="Volver a las conversaciones"><app-icon name="arrow-left" [size]="20" /></a>
       <h2>Conversación</h2>
     </header>
 
     @if (error()) {
-      <div class="alert alert-error banner">{{ error() }}</div>
+      <div class="alert alert-error banner" role="alert">{{ error() }}</div>
     }
 
     <div class="scroller" #scroller>
@@ -36,11 +37,11 @@ import { ComposerComponent, ComposerSubmit } from '../chat/composer.component';
             <p>{{ message.content }}</p>
           </div>
           @if (message.authorId === myId()) {
-            <button class="btn btn-ghost delete" (click)="remove(message)" title="Borrar">🗑</button>
+            <button class="btn btn-ghost delete" (click)="remove(message)" title="Borrar" aria-label="Borrar mensaje"><app-icon name="trash" [size]="16" /></button>
           }
         </div>
       } @empty {
-        <div class="empty-state"><div class="icon">👋</div><p>Saluda para empezar la conversación.</p></div>
+        <div class="empty-state"><div class="icon"><app-icon name="message" [size]="40" /></div><p>Saluda para empezar la conversación.</p></div>
       }
     </div>
 
@@ -55,7 +56,7 @@ import { ComposerComponent, ComposerSubmit } from '../chat/composer.component';
     .scroller { flex: 1; min-height: 0; overflow-y: auto; padding: 0.5rem 0; }
     .message { display: flex; gap: 0.75rem; padding: 0.5rem 1rem; }
     .message:hover { background: var(--surface-alt); }
-    .message:hover .delete { visibility: visible; }
+    .message:hover .delete, .message:focus-within .delete { visibility: visible; }
     .body { flex: 1; min-width: 0; }
     .body header { display: flex; gap: 0.5rem; align-items: baseline; }
     time { font-size: 0.75rem; }

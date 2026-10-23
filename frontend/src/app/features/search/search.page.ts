@@ -6,10 +6,11 @@ import { SearchApi, SearchFilters } from '../../core/api/misc.api';
 import { errorMessage } from '../../core/errors';
 import { Page, SearchResult } from '../../core/models';
 import { WorkspaceState } from '../../core/state/workspace-state.service';
+import { IconComponent } from '../../shared/icon.component';
 
 @Component({
   selector: 'app-search',
-  imports: [FormsModule, RouterLink, DatePipe],
+  imports: [FormsModule, RouterLink, DatePipe, IconComponent],
   template: `
     <div class="page">
       <h1>Buscar mensajes</h1>
@@ -41,7 +42,7 @@ import { WorkspaceState } from '../../core/state/workspace-state.service';
             <p>{{ result.content }}</p>
           </a>
         } @empty {
-          <div class="empty-state"><div class="icon">🔍</div><p>No hay mensajes que coincidan.</p></div>
+          <div class="empty-state"><div class="icon"><app-icon name="search" [size]="40" /></div><p>No hay mensajes que coincidan.</p></div>
         }
         @if (page.totalPages > 1) {
           <div class="row pager">

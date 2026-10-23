@@ -218,8 +218,10 @@ textarea.input {
 }
 
 .empty-state .icon {
-  font-size: 2.5rem;
+  display: flex;
+  justify-content: center;
   margin-bottom: 0.5rem;
+  opacity: 0.55;
 }
 
 /* Loading skeletons */

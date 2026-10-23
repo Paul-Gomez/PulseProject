@@ -89,7 +89,9 @@
 }
 
 .channel {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
   padding: 0.35rem 1rem;
   margin: 0 0.5rem;
   border-radius: 6px;
@@ -185,9 +187,19 @@
 }
 
 .offline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
   color: var(--danger);
   font-size: 0.8rem;
   margin-right: 0.5rem;
+}
+
+.offline-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
 }
 
 .profile-link {
@@ -208,6 +220,9 @@
 }
 
 .toast {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   position: fixed;
   right: 1rem;
   bottom: 1rem;

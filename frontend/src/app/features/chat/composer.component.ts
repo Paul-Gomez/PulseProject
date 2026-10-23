@@ -1,5 +1,6 @@
 import { Component, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { IconComponent } from '../../shared/icon.component';
 
 export interface ComposerSubmit {
   content: string;
@@ -9,24 +10,24 @@ export interface ComposerSubmit {
 /** Text box at the bottom of a chat. Enter sends, Shift+Enter adds a new line. */
 @Component({
   selector: 'app-composer',
-  imports: [FormsModule],
+  imports: [FormsModule, IconComponent],
   template: `
     @if (replyingTo()) {
       <div class="reply-bar">
         <span>Respondiendo a: <em>{{ replyingTo() }}</em></span>
-        <button class="btn btn-ghost" type="button" (click)="cancelReply.emit()">✕</button>
+        <button class="btn btn-ghost" type="button" (click)="cancelReply.emit()" aria-label="Cancelar respuesta"><app-icon name="x" [size]="16" /></button>
       </div>
     }
     @if (file()) {
       <div class="reply-bar">
-        <span>📎 {{ file()!.name }}</span>
-        <button class="btn btn-ghost" type="button" (click)="file.set(null)">✕</button>
+        <span><app-icon name="paperclip" [size]="16" /> {{ file()!.name }}</span>
+        <button class="btn btn-ghost" type="button" (click)="file.set(null)" aria-label="Quitar archivo"><app-icon name="x" [size]="16" /></button>
       </div>
     }
     <form class="composer" (ngSubmit)="submit()">
       @if (allowFiles()) {
-        <label class="btn btn-ghost attach" title="Adjuntar archivo">
-          📎
+        <label class="btn btn-ghost attach" title="Adjuntar archivo" aria-label="Adjuntar archivo">
+          <app-icon name="paperclip" [size]="20" />
           <input type="file" hidden accept=".png,.jpg,.jpeg,.gif,.webp,.pdf,.txt,.docx,.xlsx" (change)="pickFile($event)" />
         </label>
       }

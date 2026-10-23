@@ -8,6 +8,7 @@ import { RealtimeService } from '../../core/realtime/realtime.service';
 import { WorkspaceState } from '../../core/state/workspace-state.service';
 import { ComposerComponent, ComposerSubmit } from './composer.component';
 import { MessageItemComponent } from './message-item.component';
+import { IconComponent } from '../../shared/icon.component';
 
 const PAGE_SIZE = 30;
 const TYPING_TIMEOUT_MS = 4000;
@@ -15,7 +16,7 @@ const TYPING_THROTTLE_MS = 2000;
 
 @Component({
   selector: 'app-channel-chat',
-  imports: [MessageItemComponent, ComposerComponent],
+  imports: [MessageItemComponent, ComposerComponent, IconComponent],
   templateUrl: './channel-chat.page.html',
   styleUrl: './channel-chat.page.scss',
 })

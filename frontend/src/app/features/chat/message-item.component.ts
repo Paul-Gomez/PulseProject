@@ -3,6 +3,7 @@ import { Component, computed, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Attachment, Member, Message } from '../../core/models';
 import { AvatarComponent } from '../../shared/avatar.component';
+import { IconComponent } from '../../shared/icon.component';
 
 export const QUICK_REACTIONS = ['👍', '❤️', '😂', '😮', '😢'];
 
@@ -13,7 +14,7 @@ interface TextPart {
 
 @Component({
   selector: 'app-message-item',
-  imports: [AvatarComponent, DatePipe, FormsModule],
+  imports: [AvatarComponent, DatePipe, FormsModule, IconComponent],
   template: `
     <article class="message" [class.mentions-me]="mentionsMe()">
       <app-avatar [name]="authorName()" [avatarUrl]="author()?.user?.avatarUrl ?? null" [size]="36" />
@@ -27,7 +28,7 @@ interface TextPart {
         </header>
 
         @if (parent(); as parentMessage) {
-          <div class="reply-ref">↪ {{ parentMessage.content }}</div>
+          <div class="reply-ref"><app-icon name="reply" [size]="14" /> {{ parentMessage.content }}</div>
         }
 
         @if (editing()) {
@@ -43,7 +44,7 @@ interface TextPart {
 
         @for (attachment of message().attachments; track attachment.id) {
           <button class="attachment" type="button" (click)="download.emit(attachment)">
-            📎 {{ attachment.fileName }} <span class="muted">({{ sizeLabel(attachment) }})</span>
+            <app-icon name="paperclip" [size]="16" /> {{ attachment.fileName }} <span class="muted">({{ sizeLabel(attachment) }})</span>
           </button>
         }
 
@@ -61,14 +62,14 @@ interface TextPart {
 
       <div class="actions">
         @for (emoji of quickReactions; track emoji) {
-          <button class="btn btn-ghost" type="button" (click)="react.emit(emoji)" [title]="'Reaccionar ' + emoji">{{ emoji }}</button>
+          <button class="btn btn-ghost" type="button" (click)="react.emit(emoji)" [title]="'Reaccionar ' + emoji" [attr.aria-label]="'Reaccionar con ' + emoji">{{ emoji }}</button>
         }
-        <button class="btn btn-ghost" type="button" (click)="reply.emit(message())" title="Responder">↩</button>
+        <button class="btn btn-ghost" type="button" (click)="reply.emit(message())" title="Responder" aria-label="Responder"><app-icon name="reply" [size]="16" /></button>
         @if (isMine()) {
-          <button class="btn btn-ghost" type="button" (click)="startEdit()" title="Editar">✎</button>
+          <button class="btn btn-ghost" type="button" (click)="startEdit()" title="Editar" aria-label="Editar mensaje"><app-icon name="edit" [size]="16" /></button>
         }
         @if (isMine() || canModerate()) {
-          <button class="btn btn-ghost" type="button" (click)="remove.emit(message())" title="Borrar">🗑</button>
+          <button class="btn btn-ghost" type="button" (click)="remove.emit(message())" title="Borrar" aria-label="Borrar mensaje"><app-icon name="trash" [size]="16" /></button>
         }
       </div>
     </article>
@@ -76,7 +77,7 @@ interface TextPart {
   styles: `
     .message { position: relative; display: flex; gap: 0.75rem; padding: 0.5rem 1rem; }
     .message:hover { background: var(--surface-alt); }
-    .message:hover .actions { display: flex; }
+    .message:hover .actions, .message:focus-within .actions { display: flex; }
     .mentions-me { background: var(--mention); border-left: 3px solid #e0a800; }
     .body { min-width: 0; flex: 1; }
     header { display: flex; align-items: baseline; gap: 0.5rem; }

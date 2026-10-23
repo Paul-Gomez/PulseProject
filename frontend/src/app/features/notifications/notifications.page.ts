@@ -4,18 +4,19 @@ import { Router } from '@angular/router';
 import { NotificationApi } from '../../core/api/misc.api';
 import { Notification } from '../../core/models';
 import { NotificationState } from '../../core/state/notification-state.service';
+import { IconComponent, IconName } from '../../shared/icon.component';
 
-const ICONS: Record<string, string> = {
-  MENTION: '@',
-  DIRECT_MESSAGE: '💬',
-  INVITATION: '✉',
-  MODERATION: '⚠',
-  SYSTEM: 'ℹ',
+const ICONS: Record<string, IconName> = {
+  MENTION: 'at',
+  DIRECT_MESSAGE: 'message',
+  INVITATION: 'mail',
+  MODERATION: 'alert',
+  SYSTEM: 'info',
 };
 
 @Component({
   selector: 'app-notifications',
-  imports: [DatePipe],
+  imports: [DatePipe, IconComponent],
   template: `
     <div class="page">
       <div class="row">
@@ -32,12 +33,12 @@ const ICONS: Record<string, string> = {
       } @else {
         @for (notification of notifications(); track notification.id) {
           <button class="card item" [class.unread]="!notification.readAt" (click)="open(notification)">
-            <span class="icon">{{ icon(notification) }}</span>
+            <span class="icon"><app-icon [name]="icon(notification)" [size]="18" /></span>
             <span class="text">{{ notification.text }}</span>
             <time class="muted">{{ notification.createdAt | date: 'short' }}</time>
           </button>
         } @empty {
-          <div class="empty-state"><div class="icon">🔔</div><p>No tienes notificaciones.</p></div>
+          <div class="empty-state"><div class="icon"><app-icon name="bell" [size]="40" /></div><p>No tienes notificaciones.</p></div>
         }
         @if (page() < totalPages() - 1) {
           <button class="btn btn-secondary" (click)="loadMore()">Ver más</button>
@@ -69,8 +70,8 @@ export class NotificationsPage implements OnInit {
     this.load(0);
   }
 
-  icon(notification: Notification): string {
-    return ICONS[notification.type] ?? '•';
+  icon(notification: Notification): IconName {
+    return ICONS[notification.type] ?? 'info';
   }
 
   toggleUnread(): void {
