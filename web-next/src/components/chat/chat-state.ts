@@ -9,6 +9,17 @@ export function upsertMessage(list: Message[], message: Message): Message[] {
   return copy;
 }
 
+/**
+ * Puts an older page (as the API returns it: newest first) in front of the current list.
+ * New messages arriving in real time shift the pages, so the older page can repeat
+ * messages we already show: those are skipped.
+ */
+export function prependOlder(list: Message[], olderPageNewestFirst: Message[]): Message[] {
+  const known = new Set(list.map((m) => m.id));
+  const older = [...olderPageNewestFirst].reverse().filter((m) => !known.has(m.id));
+  return [...older, ...list];
+}
+
 /** Applies a REACTION_ADDED / REACTION_REMOVED event without mutating the previous state. */
 export function applyReaction(
   list: Message[],

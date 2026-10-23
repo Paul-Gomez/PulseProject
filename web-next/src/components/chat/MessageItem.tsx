@@ -1,6 +1,7 @@
 import { memo } from "react";
 import type { Member, Message } from "@/lib/types";
 import { Avatar } from "../Avatar";
+import { Icon } from "../Icon";
 import styles from "./Chat.module.css";
 
 const QUICK_REACTIONS = ["👍", "❤️", "😂", "😮", "😢"];
@@ -48,10 +49,13 @@ export const MessageItem = memo(function MessageItem({ message, author, currentU
       <div className={styles.actions}>
         {QUICK_REACTIONS.map((emoji) => (
           <button key={emoji} type="button" className="btn btn-ghost" title={`Reaccionar ${emoji}`}
-                  onClick={() => onReact(message, emoji)}>{emoji}</button>
+                  aria-label={`Reaccionar con ${emoji}`} onClick={() => onReact(message, emoji)}>{emoji}</button>
         ))}
         {message.authorId === currentUserId && (
-          <button type="button" className="btn btn-ghost" title="Borrar" onClick={() => onDelete(message)}>🗑</button>
+          <button type="button" className="btn btn-ghost" title="Borrar" aria-label="Borrar mensaje"
+                  onClick={() => onDelete(message)}>
+            <Icon name="trash" size={16} />
+          </button>
         )}
       </div>
     </article>

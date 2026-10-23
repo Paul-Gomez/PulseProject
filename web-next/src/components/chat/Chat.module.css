@@ -39,7 +39,8 @@
   background: var(--surface-alt);
 }
 
-.message:hover .actions {
+.message:hover .actions,
+.message:focus-within .actions {
   display: flex;
 }
 
@@ -121,4 +122,35 @@
 
 .composer textarea {
   resize: none;
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.title svg {
+  color: var(--muted);
+}
+
+.alert {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin: 0.5rem 1rem 0;
+  padding: 0.35rem 0.4rem 0.35rem 0.9rem;
+}
+
+.alert :global(.icon-btn) {
+  width: 32px;
+  height: 32px;
+  color: inherit;
+}
+
+.loadOlder {
+  display: block;
+  margin: 0.5rem auto;
+  font-size: 0.85rem;
 }

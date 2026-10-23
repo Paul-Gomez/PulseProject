@@ -7,12 +7,15 @@ import { errorMessage } from "@/lib/errors";
 import { realtime, useTopic } from "@/lib/realtime";
 import type { Message, Page, RealtimeEvent } from "@/lib/types";
 import { useWorkspace } from "@/lib/workspace-context";
-import { applyReaction, upsertMessage } from "./chat-state";
+import { ConfirmDialog } from "../ConfirmDialog";
+import { Icon } from "../Icon";
+import { applyReaction, prependOlder, upsertMessage } from "./chat-state";
 import { MessageItem } from "./MessageItem";
 import styles from "./Chat.module.css";
 
 const TYPING_TIMEOUT_MS = 4000;
 const TYPING_THROTTLE_MS = 2000;
+const PAGE_SIZE = 50;
 
 export function ChannelChat({ channelId }: { channelId: string }) {
   const { user } = useAuth();
@@ -24,6 +27,9 @@ export function ChannelChat({ channelId }: { channelId: string }) {
   const [error, setError] = useState<string | null>(null);
   const [text, setText] = useState("");
   const [typing, setTyping] = useState<Record<string, string>>({});
+  const [olderPage, setOlderPage] = useState<number | null>(null); // next page to load, null = no more
+  const [loadingOlder, setLoadingOlder] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<Message | null>(null);
   const scroller = useRef<HTMLDivElement>(null);
   const typingTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
   const lastTypingSent = useRef(0);
@@ -32,10 +38,11 @@ export function ChannelChat({ channelId }: { channelId: string }) {
 
   useEffect(() => {
     let cancelled = false;
-    api<Page<Message>>(`/channels/${channelId}/messages?size=50`)
+    api<Page<Message>>(`/channels/${channelId}/messages?size=${PAGE_SIZE}`)
       .then((page) => {
         if (cancelled) return;
         setMessages([...page.content].reverse());
+        setOlderPage(page.page + 1 < page.totalPages ? page.page + 1 : null);
         scrollToBottom();
       })
       .catch((err) => !cancelled && setError(errorMessage(err)))
@@ -44,6 +51,26 @@ export function ChannelChat({ channelId }: { channelId: string }) {
       cancelled = true;
     };
   }, [channelId]);
+
+  // Keeps the message the user was reading in place: the older page grows the list upwards.
+  async function loadOlder() {
+    if (olderPage === null || loadingOlder) return;
+    setLoadingOlder(true);
+    const box = scroller.current;
+    const heightBefore = box?.scrollHeight ?? 0;
+    try {
+      const page = await api<Page<Message>>(`/channels/${channelId}/messages?size=${PAGE_SIZE}&page=${olderPage}`);
+      setMessages((list) => prependOlder(list, page.content));
+      setOlderPage(page.page + 1 < page.totalPages ? page.page + 1 : null);
+      requestAnimationFrame(() => {
+        if (box) box.scrollTop += box.scrollHeight - heightBefore;
+      });
+    } catch (err) {
+      setError(errorMessage(err));
+    } finally {
+      setLoadingOlder(false);
+    }
+  }
 
   const stopTyping = useCallback((userId: string) => {
     clearTimeout(typingTimers.current[userId]);
@@ -125,31 +152,48 @@ export function ChannelChat({ channelId }: { channelId: string }) {
     [user?.id],
   );
 
-  const remove = useCallback((message: Message) => {
-    if (!confirm("¿Seguro que quieres borrar este mensaje?")) return;
+  const askDelete = useCallback((message: Message) => setPendingDelete(message), []);
+
+  function confirmDelete() {
+    const message = pendingDelete;
+    setPendingDelete(null);
+    if (!message) return;
     api(`/messages/${message.id}`, { method: "DELETE" })
       .then(() => setMessages((list) => list.filter((m) => m.id !== message.id)))
       .catch((err) => setError(errorMessage(err)));
-  }, []);
+  }
 
   const typingNames = Object.values(typing);
 
   return (
     <div className={styles.chat}>
       <header className={styles.header}>
-        <h2>{channel ? `${channel.isPrivate ? "🔒" : "#"} ${channel.name}` : "…"}</h2>
+        <h2 className={styles.title}>
+          {channel && <Icon name={channel.isPrivate ? "lock" : "hash"} size={18} />}
+          <span>{channel?.name ?? "…"}</span>
+        </h2>
       </header>
 
       {error && (
-        <div className="alert" style={{ margin: "0.5rem 1rem 0" }} onClick={() => setError(null)}>{error}</div>
+        <div className={`alert ${styles.alert}`} role="alert">
+          <span>{error}</span>
+          <button type="button" className="icon-btn" onClick={() => setError(null)} aria-label="Cerrar aviso">
+            <Icon name="x" size={16} />
+          </button>
+        </div>
       )}
 
       <div className={styles.scroller} ref={scroller}>
+        {!loading && olderPage !== null && (
+          <button type="button" className={`btn btn-ghost ${styles.loadOlder}`} onClick={loadOlder} disabled={loadingOlder}>
+            {loadingOlder ? "Cargando..." : "Ver mensajes anteriores"}
+          </button>
+        )}
         {loading
           ? [1, 2, 3, 4].map((i) => <div key={i} className={`skeleton ${styles.skeletonRow}`} />)
           : messages.map((m) => (
               <MessageItem key={m.id} message={m} author={members.get(m.authorId)} currentUserId={user?.id ?? ""}
-                           currentUsername={user?.username ?? ""} onReact={react} onDelete={remove} />
+                           currentUsername={user?.username ?? ""} onReact={react} onDelete={askDelete} />
             ))}
         {!loading && messages.length === 0 && <p className="empty">Todavía no hay mensajes. ¡Escribe el primero!</p>}
       </div>
@@ -164,6 +208,11 @@ export function ChannelChat({ channelId }: { channelId: string }) {
                   onChange={(e) => onChange(e.target.value)} onKeyDown={onKeyDown} />
         <button className="btn" type="submit" disabled={!text.trim()}>Enviar</button>
       </form>
+
+      {pendingDelete && (
+        <ConfirmDialog title="Borrar mensaje" message="El mensaje desaparecerá para todos los miembros del canal."
+                       confirmLabel="Borrar" onConfirm={confirmDelete} onCancel={() => setPendingDelete(null)} />
+      )}
     </div>
   );
 }

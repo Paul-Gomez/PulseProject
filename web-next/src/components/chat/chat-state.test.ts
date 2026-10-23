@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Message } from "@/lib/types";
-import { applyReaction, upsertMessage } from "./chat-state";
+import { applyReaction, prependOlder, upsertMessage } from "./chat-state";
 
 const message = (id: string, content = "hola"): Message => ({
   id, channelId: "c1", authorId: "u1", content, parentMessageId: null, editedAt: null,
@@ -16,6 +16,18 @@ describe("upsertMessage", () => {
   it("replaces an edited message in place", () => {
     const list = upsertMessage([message("m1"), message("m2")], message("m1", "editado"));
     expect(list.map((m) => m.content)).toEqual(["editado", "hola"]);
+  });
+});
+
+describe("prependOlder", () => {
+  it("puts the older page first, in chronological order", () => {
+    const list = prependOlder([message("m3")], [message("m2"), message("m1")]);
+    expect(list.map((m) => m.id)).toEqual(["m1", "m2", "m3"]);
+  });
+
+  it("skips messages already shown when new ones shifted the pages", () => {
+    const list = prependOlder([message("m2"), message("m3")], [message("m2"), message("m1")]);
+    expect(list.map((m) => m.id)).toEqual(["m1", "m2", "m3"]);
   });
 });
 
