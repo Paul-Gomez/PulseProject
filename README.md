@@ -163,6 +163,8 @@ cd frontend && npm install && npm start
 # Web en Next.js (http://localhost:3000). Next redirige /api al backend;
 # si tu backend no está en el 8080, crea web-next/.env.local con
 # BACKEND_URL=http://localhost:PUERTO y NEXT_PUBLIC_WS_URL=ws://localhost:PUERTO/ws
+# Tiene que arrancar en el 3000: si ese puerto está ocupado, Next se pasa solo al 3001
+# y el login falla, porque el backend no admite ese origen (ver CORS_ALLOWED_ORIGINS).
 cd web-next && npm install && npm run dev
 
 # Móvil en el navegador (http://localhost:8100)
@@ -342,7 +344,7 @@ cd web-next && npm test
   - dos personas que abren el mismo chat a la vez acaban en una sola conversación;
   - un mensaje enviado por REST llega por WebSocket a los suscritos, y alguien de fuera no recibe nada.
 - **Frontend Angular:** tests unitarios del interceptor (añadir el token, refresh y reintento, logout si el refresh falla) y de los mensajes de error.
-- **Frontend Next.js (Vitest):** el cliente de la API (token, refresh y reintento, fin de sesión) y la lógica del chat (no duplicar mensajes, aplicar reacciones sin mutar el estado).
+- **Frontend Next.js (Vitest):** el cliente de la API (token, refresh y reintento, fin de sesión) y la lógica del chat (no duplicar mensajes, aplicar reacciones sin mutar el estado, añadir mensajes anteriores sin repetirlos).
 
 ---
 
@@ -386,7 +388,7 @@ flowchart TB
 - **Presencia en Redis con caducidad:** sobrevive a reinicios y a varias instancias del backend sin dejar usuarios "online" para siempre.
 - **Búsqueda con SQL directo:** los filtros son opcionales y combinables, y la regla de visibilidad se lee entera en una sola consulta.
 - **Tokens en `localStorage`:** sencillo y la sesión sobrevive a una recarga. La contrapartida es que un XSS podría leerlos; por eso el access token dura poco y Angular escapa todo el contenido. La alternativa sería guardar el refresh token en una cookie `HttpOnly`.
-- **Next.js como cliente del lado del navegador:** como la sesión vive en el navegador, el área privada carga sus datos en el cliente, y las páginas privadas declaran `instant = false` para indicar a Next que no pueden pintarse al instante desde el servidor. Next redirige `/api` al backend (sin CORS); el WebSocket va directo porque los rewrites no hacen de proxy de WebSockets. Con una cookie HttpOnly podría usar Server Components y renderizar en el servidor.
+- **Next.js como cliente del lado del navegador:** como la sesión vive en el navegador, el área privada carga sus datos en el cliente, y las páginas privadas declaran `instant = false` para indicar a Next que no pueden pintarse al instante desde el servidor. Next redirige `/api` al backend, así que el navegador solo habla con su propio origen. El backend sigue comprobando CORS, porque Next reenvía la cabecera `Origin`: por eso `http://localhost:3000` está en `CORS_ALLOWED_ORIGINS`. El WebSocket va directo al backend porque los rewrites no hacen de proxy de WebSockets. Con una cookie HttpOnly podría usar Server Components y renderizar en el servidor.
 - **La app móvil copia la capa `core` de la web:** lo único que cambia es la URL del backend. Con más tiempo la convertiría en una librería compartida (por ejemplo, con un workspace de Nx).
 
 ---

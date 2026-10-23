@@ -109,6 +109,7 @@ Si algo falla en directo: "esto lo tengo cubierto con tests", y abre un test del
 | El backend se reinicia solo | Revisa `docker compose logs backend`. Casi siempre falta `JWT_SECRET` en `.env`. |
 | `node scripts/seed-demo.mjs` dice "fetch failed" | El backend aún no está listo. Espera un minuto y repite. |
 | La web de Next.js carga pero el login falla | Si tu backend no está en el 8080 (por ejemplo, si cambiaste `BACKEND_PORT`), crea `web-next/.env.local` con `BACKEND_URL=http://localhost:PUERTO` y `NEXT_PUBLIC_WS_URL=ws://localhost:PUERTO/ws`, y reinicia `npm run dev`. |
+| El login de Next.js dice "Algo ha ido mal" y en la terminal pone que usa el puerto 3001 | El puerto 3000 estaba ocupado y el backend solo admite el origen 3000. Cierra lo que use el 3000 y vuelve a lanzar `npm run dev`, o añade `http://localhost:3001` a `CORS_ALLOWED_ORIGINS` en `.env` y reinicia el backend. |
 | Los mensajes no llegan en tiempo real | Revisa `NEXT_PUBLIC_WS_URL`: tiene que apuntar al mismo puerto que el backend. |
 | Quiero empezar de cero | `docker compose down -v` borra todos los datos. Después repite desde el paso 4. |
 
