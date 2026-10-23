@@ -10,6 +10,22 @@ Proyecto de portfolio con un backend en **Spring Boot** y tres clientes que cons
 - **Móvil:** Ionic 9 · Angular · Capacitor
 - **Calidad:** más de 110 tests de integración con Testcontainers · tests unitarios del frontend · GitHub Actions · Docker Compose
 
+## Capturas
+
+| Chat en Next.js | Modo oscuro |
+|---|---|
+| ![Chat de un canal en la web de Next.js](docs/capturas/02-chat.png) | ![El mismo chat en modo oscuro](docs/capturas/03-chat-oscuro.png) |
+
+| Buscador rápido (Ctrl+K) | Web en Angular |
+|---|---|
+| ![Buscador de canales y workspaces](docs/capturas/04-buscador.png) | ![Chat en la web de Angular](docs/capturas/06-angular.png) |
+
+| Next.js en el móvil | App Ionic | Inicio de sesión |
+|---|---|---|
+| ![Next.js a 390 px de ancho](docs/capturas/05-movil-next.png) | ![App móvil hecha con Ionic](docs/capturas/07-movil-ionic.png) | ![Pantalla de login](docs/capturas/01-login.png) |
+
+La API está documentada con Swagger ([captura](docs/capturas/08-swagger.png)). Los datos de las capturas son de prueba y se crean con `scripts/seed-demo.mjs`.
+
 ---
 
 ## Índice
