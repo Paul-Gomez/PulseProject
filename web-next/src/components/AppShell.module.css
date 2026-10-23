@@ -212,6 +212,11 @@
   display: none;
 }
 
+/* The bell is the reference box for its badge. */
+.bell {
+  position: relative;
+}
+
 /* The notification count sits on the top-right corner of the bell and pops when it changes. */
 .badge {
   position: absolute;
@@ -269,12 +274,16 @@
     left: 72px;
     width: 248px;
     transform: translateX(calc(-100% - 72px));
-    box-shadow: 8px 0 30px rgba(0, 0, 0, 0.3);
   }
 
   .open .rail,
   .open .sidebar {
     transform: none;
+  }
+
+  /* Shadow only while the drawer is open: when closed it would peek in from the left edge. */
+  .open .sidebar {
+    box-shadow: 8px 0 30px rgba(0, 0, 0, 0.3);
   }
 
   .open .backdrop {

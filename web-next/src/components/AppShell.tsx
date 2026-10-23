@@ -146,7 +146,7 @@ function Layout({ children }: { children: ReactNode }) {
           <button className="icon-btn" onClick={() => setPaletteOpen(true)} title="Buscar (Ctrl+K)" aria-label="Buscar">
             <Icon name="search" size={22} />
           </button>
-          <button className="icon-btn" title="Notificaciones sin leer" aria-label="Notificaciones">
+          <button className={`icon-btn ${styles.bell}`} title="Notificaciones sin leer" aria-label="Notificaciones">
             <Icon name="bell" size={24} />
             {ws.unreadNotifications > 0 && (
               <span key={ws.unreadNotifications} className={styles.badge}>{ws.unreadNotifications}</span>
