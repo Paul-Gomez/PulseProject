@@ -16,6 +16,8 @@ export class RealtimeService implements OnDestroy {
   private client: Client | null = null;
 
   readonly connected = signal(false);
+  /** True only when a connection that worked has dropped: the first connection after loading is not an outage. */
+  readonly lost = signal(false);
 
   connect(): void {
     if (this.client?.active) {
@@ -41,6 +43,7 @@ export class RealtimeService implements OnDestroy {
     this.client?.deactivate();
     this.client = null;
     this.setConnected(false);
+    this.lost.set(false); // closing on purpose (logout) is not an outage
   }
 
   watch<T>(destination: string): Observable<RealtimeEvent<T>> {
@@ -71,6 +74,12 @@ export class RealtimeService implements OnDestroy {
   }
 
   private setConnected(value: boolean): void {
+    if (!value && this.connected()) {
+      this.lost.set(true);
+    }
+    if (value) {
+      this.lost.set(false);
+    }
     this.connected.set(value);
     this.connected$.next(value);
   }

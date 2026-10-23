@@ -74,7 +74,7 @@
       <button class="btn btn-ghost menu" (click)="sidebarOpen.set(!sidebarOpen())" aria-label="Menú">☰</button>
       <a class="btn btn-ghost" routerLink="/search" title="Buscar">🔍 <span class="label">Buscar</span></a>
       <span class="spacer"></span>
-      @if (!realtime.connected()) {
+      @if (realtime.lost()) {
         <span class="offline" title="Reconectando con el servidor...">● sin conexión</span>
       }
       <a class="btn btn-ghost bell" routerLink="/notifications" title="Notificaciones">
