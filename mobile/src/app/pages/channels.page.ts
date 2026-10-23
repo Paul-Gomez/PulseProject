@@ -1,8 +1,10 @@
 import { Component, inject, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import {
-  IonBackButton, IonButtons, IonContent, IonHeader, IonItem, IonLabel, IonList, IonNote, IonTitle, IonToolbar, ViewWillEnter,
+  IonBackButton, IonButtons, IonContent, IonHeader, IonIcon, IonItem, IonLabel, IonList, IonNote, IonTitle, IonToolbar, ViewWillEnter,
 } from '@ionic/angular';
+import { addIcons } from 'ionicons';
+import { lockClosedOutline } from 'ionicons/icons';
 import { forkJoin } from 'rxjs';
 import { ChannelApi } from '../core/api/channel.api';
 import { WorkspaceApi } from '../core/api/workspace.api';
@@ -10,7 +12,7 @@ import { Channel, Workspace } from '../core/models';
 
 @Component({
   selector: 'app-channels',
-  imports: [RouterLink, IonHeader, IonToolbar, IonButtons, IonBackButton, IonTitle, IonContent, IonList, IonItem, IonLabel, IonNote],
+  imports: [RouterLink, IonHeader, IonToolbar, IonButtons, IonBackButton, IonTitle, IonContent, IonList, IonItem, IonLabel, IonNote, IonIcon],
   template: `
     <ion-header>
       <ion-toolbar color="primary">
@@ -22,7 +24,10 @@ import { Channel, Workspace } from '../core/models';
       <ion-list>
         @for (channel of channels(); track channel.id) {
           <ion-item [routerLink]="['/tabs/workspaces', workspaceId(), 'c', channel.id]" detail>
-            <ion-label>{{ channel.isPrivate ? '🔒' : '#' }} {{ channel.name }}</ion-label>
+            @if (channel.isPrivate) {
+              <ion-icon slot="start" name="lock-closed-outline" aria-label="Canal privado" />
+            }
+            <ion-label>{{ channel.isPrivate ? '' : '# ' }}{{ channel.name }}</ion-label>
             @if (channel.type === 'ANNOUNCEMENT') {
               <ion-note slot="end">anuncios</ion-note>
             }
@@ -40,6 +45,10 @@ export class ChannelsPage implements ViewWillEnter {
   readonly workspaceId = input.required<string>();
   protected readonly workspace = signal<Workspace | null>(null);
   protected readonly channels = signal<Channel[]>([]);
+
+  constructor() {
+    addIcons({ lockClosedOutline });
+  }
 
   ionViewWillEnter(): void {
     forkJoin({
