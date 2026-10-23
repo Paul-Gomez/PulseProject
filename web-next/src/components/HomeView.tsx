@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/auth";
 import { errorMessage } from "@/lib/errors";
 import type { Workspace } from "@/lib/types";
 import { useWorkspace } from "@/lib/workspace-context";
+import styles from "./HomeView.module.css";
 
 export function HomeView() {
   const { user } = useAuth();
@@ -31,31 +32,46 @@ export function HomeView() {
   }
 
   return (
-    <div style={{ padding: "1.5rem", maxWidth: 900, width: "100%", margin: "0 auto", overflowY: "auto" }}>
-      <h1>Hola, {user?.displayName} 👋</h1>
-      <h2>Tus workspaces</h2>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "1rem", marginBottom: "2rem" }}>
-        {workspaces.map((w) => (
-          <Link key={w.id} href={`/w/${w.id}`} className="card" style={{ color: "inherit", padding: "1rem" }}>
-            <strong>{w.name}</strong>
-            <p className="muted" style={{ margin: "0.25rem 0 0", fontSize: "0.85rem" }}>{w.description || "Sin descripción"}</p>
-          </Link>
-        ))}
-        {workspaces.length === 0 && (
-          <p className="empty" style={{ gridColumn: "1 / -1" }}>Todavía no perteneces a ningún workspace. Crea el primero.</p>
-        )}
-      </div>
+    <div className={styles.page}>
+      <header className={styles.header}>
+        <h1>Hola, {user?.displayName}</h1>
+        <p className="muted">Elige un workspace para entrar en sus canales o crea uno nuevo.</p>
+      </header>
 
-      <h2>Crear workspace</h2>
-      <form className="card" onSubmit={create}>
-        {error && <div className="alert">{error}</div>}
-        <div className="field">
-          <label htmlFor="name">Nombre</label>
-          <input id="name" className="input" value={name} maxLength={100} placeholder="Gaming Club"
-                 onChange={(e) => setName(e.target.value)} />
-        </div>
-        <button className="btn" type="submit" disabled={!name.trim() || creating}>Crear</button>
-      </form>
+      <section aria-labelledby="workspaces-title">
+        <h2 id="workspaces-title" className={styles.sectionTitle}>Tus workspaces</h2>
+        {workspaces.length > 0 ? (
+          <div className={styles.grid}>
+            {workspaces.map((w) => (
+              <Link key={w.id} href={`/w/${w.id}`} className={styles.workspace}>
+                <span className={styles.initial} aria-hidden>{w.name.charAt(0).toUpperCase()}</span>
+                <span className={styles.workspaceText}>
+                  <strong>{w.name}</strong>
+                  <span className="muted">{w.description || "Sin descripción"}</span>
+                </span>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <p className={styles.empty}>Todavía no perteneces a ningún workspace. Crea el primero aquí abajo.</p>
+        )}
+      </section>
+
+      <section aria-labelledby="create-title">
+        <h2 id="create-title" className={styles.sectionTitle}>Crear workspace</h2>
+        <form className={styles.form} onSubmit={create} noValidate>
+          <div className="field">
+            <label htmlFor="name">Nombre</label>
+            <input id="name" className="input" value={name} maxLength={100} placeholder="Por ejemplo, Equipo de diseño"
+                   required aria-invalid={Boolean(error)} aria-describedby={error ? "name-error" : undefined}
+                   onChange={(e) => setName(e.target.value)} />
+            {error && <span id="name-error" className={styles.fieldError}>{error}</span>}
+          </div>
+          <button className="btn" type="submit" disabled={!name.trim() || creating}>
+            {creating ? "Creando..." : "Crear workspace"}
+          </button>
+        </form>
+      </section>
     </div>
   );
 }
