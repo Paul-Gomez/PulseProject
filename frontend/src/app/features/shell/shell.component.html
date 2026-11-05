@@ -21,7 +21,8 @@
 
       <div class="section-title">
         <span>Canales</span>
-        <button class="btn btn-ghost" (click)="creatingChannel.set(!creatingChannel())" title="Nuevo canal">+</button>
+        <button class="btn btn-ghost" (click)="creatingChannel.set(!creatingChannel())" title="Nuevo canal" aria-label="Nuevo canal"
+                [attr.aria-expanded]="creatingChannel()">+</button>
       </div>
 
       @if (creatingChannel()) {

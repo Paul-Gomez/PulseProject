@@ -1,6 +1,6 @@
 <header class="chat-header">
   @if (channel(); as current) {
-    <h2 class="title"><app-icon [name]="current.isPrivate ? 'lock' : 'hash'" [size]="18" /> {{ current.name }}</h2>
+    <h1 class="title"><app-icon [name]="current.isPrivate ? 'lock' : 'hash'" [size]="18" /> {{ current.name }}</h1>
     @if (current.type === 'ANNOUNCEMENT') {
       <span class="tag">Anuncios</span>
     }

@@ -49,7 +49,7 @@ const ICONS: Record<string, IconName> = {
   styles: `
     .item { width: 100%; display: flex; align-items: center; gap: 0.75rem; padding: 0.8rem 1rem; margin-bottom: 0.5rem;
       text-align: left; font: inherit; color: var(--text); cursor: pointer; }
-    .item.unread { border-left: 4px solid var(--primary); font-weight: 600; }
+    .item.unread { background: var(--primary-soft); font-weight: 600; }
     .icon { width: 28px; text-align: center; font-size: 1.1rem; }
     .text { flex: 1; }
     time { font-size: 0.8rem; font-weight: normal; }

@@ -1,12 +1,13 @@
 import { Component, computed, input } from '@angular/core';
 
-const COLORS = ['#5b5bd6', '#d6455b', '#2f9e5b', '#d68a2f', '#2f86d6', '#9b4fd6', '#2fb0a6'];
+// Every colour keeps at least 4.5:1 with the white initials.
+const COLORS = ['#5b5bd6', '#cd4257', '#27854c', '#a16823', '#2a77be', '#9b4fd6', '#23827b'];
 
 /** Round avatar: the user's picture if they have one, otherwise their initials. Optional online dot. */
 @Component({
   selector: 'app-avatar',
   template: `
-    <span class="avatar" [style.width.px]="size()" [style.height.px]="size()" [style.font-size.px]="size() * 0.4"
+    <span class="avatar" [style.width.px]="size()" [style.height.px]="size()" [style.font-size.px]="fontSize()"
           [style.background]="avatarUrl() ? 'transparent' : color()">
       @if (avatarUrl()) {
         <img [src]="avatarUrl()" [alt]="name()" />
@@ -32,6 +33,9 @@ export class AvatarComponent {
   readonly avatarUrl = input<string | null>(null);
   readonly size = input(32);
   readonly online = input<boolean | null>(null);
+
+  /** 40% of the avatar, but never under 11px so the initials stay legible on small avatars. */
+  protected readonly fontSize = computed(() => Math.max(11, this.size() * 0.4));
 
   protected readonly initials = computed(() =>
     this.name()

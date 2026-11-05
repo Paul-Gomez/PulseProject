@@ -68,7 +68,7 @@ import { IconComponent } from '../../shared/icon.component';
     .workspace { display: flex; gap: 0.9rem; align-items: center; color: inherit; padding: 1rem; }
     .workspace:hover { border-color: var(--primary); text-decoration: none; }
     .workspace p { margin: 0.2rem 0 0; font-size: 0.85rem; }
-    .ws-icon { width: 44px; height: 44px; border-radius: 12px; background: var(--primary); color: #fff;
+    .ws-icon { width: 44px; height: 44px; border-radius: 12px; background: var(--primary); color: var(--on-primary);
       display: flex; align-items: center; justify-content: center; font-weight: 800; flex-shrink: 0; }
     .empty-state { grid-column: 1 / -1; }
   `,

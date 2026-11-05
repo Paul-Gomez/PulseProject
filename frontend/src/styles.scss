@@ -7,12 +7,16 @@
   --sidebar-text: #c9cfdb;
   --sidebar-active: #343b4d;
   --text: #1c1f26;
-  --text-muted: #6b7280;
+  --text-muted: #5f6673;
   --border: #dde1e7;
   --primary: #5b5bd6;
   --primary-hover: #4a4ac2;
   --primary-soft: #ececfb;
-  --danger: #d64545;
+  /* Measured: white on --primary is 5.4:1. */
+  --on-primary: #ffffff;
+  /* Violet used as text (links, mentions). */
+  --primary-text: #5b5bd6;
+  --danger: #cd4242;
   --success: #2f9e5b;
   --mention: #fff4d6;
   --radius: 8px;
@@ -33,6 +37,9 @@
   --primary: #7c7cf0;
   --primary-hover: #9090f5;
   --primary-soft: #2b2d4a;
+  /* White on the light violet is only 3.5:1, so text on it is dark (5.0:1). */
+  --on-primary: #14143a;
+  --primary-text: #9d9df4;
   --mention: #3b3420;
   --shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
   color-scheme: dark;
@@ -53,7 +60,7 @@ body {
 }
 
 a {
-  color: var(--primary);
+  color: var(--primary-text);
   text-decoration: none;
 }
 
@@ -78,7 +85,7 @@ h3 {
   border: 1px solid transparent;
   border-radius: var(--radius);
   background: var(--primary);
-  color: #fff;
+  color: var(--on-primary);
   font: inherit;
   font-weight: 600;
   cursor: pointer;
@@ -279,4 +286,10 @@ table.table td {
 table.table th {
   color: var(--text-muted);
   font-weight: 600;
+}
+
+/* Browser placeholders default to a mid gray that fails contrast on the dark theme. */
+::placeholder {
+  color: var(--text-muted);
+  opacity: 1;
 }

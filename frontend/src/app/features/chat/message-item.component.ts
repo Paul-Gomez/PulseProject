@@ -52,6 +52,8 @@ interface TextPart {
           <div class="reactions">
             @for (reaction of message().reactions; track reaction.emoji) {
               <button class="reaction" type="button" [class.mine]="reaction.userIds.includes(currentUserId())"
+                      [attr.aria-pressed]="reaction.userIds.includes(currentUserId())"
+                      [attr.aria-label]="reaction.emoji + ' ' + reaction.count + (reaction.count === 1 ? ' reacción' : ' reacciones')"
                       (click)="react.emit(reaction.emoji)">
                 {{ reaction.emoji }} {{ reaction.count }}
               </button>
@@ -78,18 +80,18 @@ interface TextPart {
     .message { position: relative; display: flex; gap: 0.75rem; padding: 0.5rem 1rem; }
     .message:hover { background: var(--surface-alt); }
     .message:hover .actions, .message:focus-within .actions { display: flex; }
-    .mentions-me { background: var(--mention); border-left: 3px solid #e0a800; }
+    .mentions-me { background: var(--mention); }
     .body { min-width: 0; flex: 1; }
     header { display: flex; align-items: baseline; gap: 0.5rem; }
     time, .small { font-size: 0.75rem; }
     .content { margin: 0.15rem 0 0; white-space: pre-wrap; word-break: break-word; }
-    .mention { background: var(--primary-soft); color: var(--primary); border-radius: 4px; padding: 0 2px; font-weight: 600; }
+    .mention { background: var(--primary-soft); color: var(--primary-text); border-radius: 4px; padding: 0 2px; font-weight: 600; }
     .reply-ref { font-size: 0.8rem; color: var(--text-muted); border-left: 3px solid var(--border); padding-left: 0.5rem;
       margin: 0.2rem 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .attachment { display: inline-block; margin-top: 0.35rem; padding: 0.4rem 0.6rem; border: 1px solid var(--border);
       border-radius: var(--radius); background: var(--surface); color: var(--text); cursor: pointer; font: inherit; }
     .reactions { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.35rem; }
-    .reaction { border: 1px solid var(--border); background: var(--surface); border-radius: 999px; padding: 0.1rem 0.5rem;
+    .reaction { min-height: 28px; border: 1px solid var(--border); background: var(--surface); border-radius: 999px; padding: 0.1rem 0.5rem;
       cursor: pointer; font: inherit; font-size: 0.85rem; color: var(--text); }
     .reaction.mine { border-color: var(--primary); background: var(--primary-soft); }
     .actions { display: none; position: absolute; top: -12px; right: 1rem; background: var(--surface);

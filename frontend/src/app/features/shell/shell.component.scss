@@ -36,6 +36,7 @@
   &.active,
   &.home {
     background: var(--primary);
+    color: var(--on-primary);
   }
 
   &.add {
@@ -83,6 +84,8 @@
   letter-spacing: 0.04em;
 
   .btn-ghost {
+    min-width: 28px;
+    min-height: 28px;
     color: var(--sidebar-text);
     padding: 0 0.4rem;
   }
@@ -108,7 +111,7 @@
 
   &.active {
     background: var(--primary);
-    color: #fff;
+    color: var(--on-primary);
   }
 }
 
