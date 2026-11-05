@@ -1,4 +1,5 @@
-const COLORS = ["#0f9d8a", "#d6455b", "#5b5bd6", "#d68a2f", "#2f86d6", "#9b4fd6"];
+// Every colour keeps at least 4.5:1 with the white initials.
+const COLORS = ["#0c7c6d", "#cd4257", "#5b5bd6", "#a16823", "#2a77be", "#9b4fd6"];
 
 function colorFor(name: string) {
   let hash = 0;
@@ -26,7 +27,7 @@ export function Avatar({ name, size = 32, online }: AvatarProps) {
       style={{
         position: "relative", display: "inline-flex", alignItems: "center", justifyContent: "center",
         width: size, height: size, borderRadius: 3, background: colorFor(name), color: "#fff",
-        fontWeight: 700, fontSize: size * 0.4, flexShrink: 0,
+        fontWeight: 700, fontSize: Math.max(11, size * 0.4), flexShrink: 0,
       }}
       aria-hidden
     >

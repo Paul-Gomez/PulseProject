@@ -168,10 +168,10 @@ export function ChannelChat({ channelId }: { channelId: string }) {
   return (
     <div className={styles.chat}>
       <header className={styles.header}>
-        <h2 className={styles.title}>
+        <h1 className={styles.title}>
           {channel && <Icon name={channel.isPrivate ? "lock" : "hash"} size={18} />}
           <span>{channel?.name ?? "…"}</span>
-        </h2>
+        </h1>
       </header>
 
       {error && (

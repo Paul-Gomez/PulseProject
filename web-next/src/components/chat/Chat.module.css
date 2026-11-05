@@ -11,7 +11,7 @@
   background: var(--surface);
 }
 
-.header h2 {
+.header h1 {
   margin: 0;
   font-size: 1.05rem;
 }
@@ -44,9 +44,9 @@
   display: flex;
 }
 
+/* A mention of you is marked by the tinted row alone, with no side stripe. */
 .mentionsMe {
   background: var(--mention);
-  border-left: 3px solid #e0a800;
 }
 
 .body {
@@ -79,10 +79,14 @@
 }
 
 .reaction {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-height: 28px;
   border: 1px solid var(--border);
   background: var(--surface);
   border-radius: 3px;
-  padding: 0.1rem 0.5rem;
+  padding: 0.15rem 0.55rem;
   cursor: pointer;
   font: inherit;
   font-size: 0.85rem;

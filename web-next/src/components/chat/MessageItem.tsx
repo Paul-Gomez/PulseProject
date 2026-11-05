@@ -39,6 +39,8 @@ export const MessageItem = memo(function MessageItem({ message, author, currentU
           <div className={styles.reactions}>
             {message.reactions.map((r) => (
               <button key={r.emoji} type="button" onClick={() => onReact(message, r.emoji)}
+                      aria-pressed={r.userIds.includes(currentUserId)}
+                      aria-label={`${r.emoji} ${r.count} ${r.count === 1 ? "reacción" : "reacciones"}`}
                       className={`${styles.reaction} ${r.userIds.includes(currentUserId) ? styles.mine : ""}`}>
                 {r.emoji} {r.count}
               </button>

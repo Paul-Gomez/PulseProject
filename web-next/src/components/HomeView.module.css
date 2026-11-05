@@ -61,7 +61,7 @@
   height: 40px;
   border-radius: var(--radius);
   background: var(--primary);
-  color: #fff;
+  color: var(--on-primary);
   font-weight: 700;
 }
 

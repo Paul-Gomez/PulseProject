@@ -40,6 +40,7 @@
 .railItem:hover {
   border-radius: 3px;
   background: var(--primary);
+  color: var(--on-primary);
   transform: translateY(-1px);
 }
 
@@ -47,6 +48,7 @@
 .railItem.active {
   border-radius: 3px;
   background: var(--primary);
+  color: var(--on-primary);
 }
 
 .railItem.active::before {
@@ -79,11 +81,11 @@
 
 .sectionTitle {
   padding: 1.1rem 1.1rem 0.35rem;
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  opacity: 0.65;
+  color: var(--sidebar-text);
 }
 
 .channel {
@@ -106,7 +108,7 @@
 .channelActive,
 .channelActive:hover {
   background: var(--primary);
-  color: #fff;
+  color: var(--on-primary);
 }
 
 .channel span {
@@ -187,7 +189,7 @@
 .hint {
   padding: 0 1.1rem;
   font-size: 0.85rem;
-  opacity: 0.7;
+  color: var(--sidebar-text);
 }
 
 .main {

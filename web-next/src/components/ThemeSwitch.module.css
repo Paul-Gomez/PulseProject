@@ -38,5 +38,5 @@
 .on .thumb {
   transform: translateX(26px);
   background: var(--primary);
-  color: #fff;
+  color: var(--on-primary);
 }

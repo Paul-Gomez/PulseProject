@@ -6,12 +6,14 @@
   --sidebar-text: #aeb6c6;
   --sidebar-active: #272d3b;
   --text: #171a21;
-  --muted: #6b7280;
+  --muted: #5f6673;
   --border: #e3e6eb;
-  --primary: #0f9d8a;
-  --primary-hover: #0c8574;
-  --primary-soft: #e0f5f1;
-  --danger: #d64545;
+  /* Measured, not eyeballed: white on --primary is 5.1:1 and --primary as link text on --bg is 4.7:1. */
+  --primary: #0c7c6d;
+  --primary-hover: #0b6e61;
+  --primary-soft: #e6f6f2;
+  --on-primary: #ffffff;
+  --danger: #cd4242;
   --mention: #fff6dc;
   --radius: 3px;
   --shadow: 0 1px 2px rgba(16, 24, 40, 0.06), 0 4px 14px rgba(16, 24, 40, 0.05);
@@ -29,9 +31,11 @@
   --text: #e7e9ee;
   --muted: #8d95a4;
   --border: #272c37;
+  /* The bright teal reads well as text on dark, but white on it is only 2.2:1: text on it is dark instead. */
   --primary: #2fc4ad;
   --primary-hover: #49d3be;
   --primary-soft: #16332f;
+  --on-primary: #04201b;
   --mention: #37301c;
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 6px 20px rgba(0, 0, 0, 0.25);
   color-scheme: dark;
@@ -92,7 +96,7 @@ h2 {
   border: 1px solid transparent;
   border-radius: var(--radius);
   background: var(--primary);
-  color: #fff;
+  color: var(--on-primary);
   font: inherit;
   font-weight: 600;
   cursor: pointer;
@@ -101,7 +105,7 @@ h2 {
 
 .btn:hover:not(:disabled) {
   background: var(--primary-hover);
-  box-shadow: 0 4px 12px rgba(15, 157, 138, 0.25);
+  box-shadow: 0 4px 12px rgba(12, 124, 109, 0.25);
 }
 
 .btn:active:not(:disabled) {
@@ -161,6 +165,12 @@ h2 {
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 
+/* Browser placeholders default to a mid gray that fails contrast on the dark theme. */
+::placeholder {
+  color: var(--muted);
+  opacity: 1;
+}
+
 .input:focus {
   outline: none;
   border-color: var(--primary);
@@ -193,7 +203,7 @@ h2 {
   padding: 0.7rem 0.9rem;
   border-radius: var(--radius);
   margin-bottom: 1rem;
-  background: rgba(214, 69, 69, 0.1);
+  background: rgba(205, 66, 66, 0.1);
   color: var(--danger);
   font-size: 0.9rem;
 }
