@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { AuthProvider } from "@/lib/auth";
+// Figtree is served by the app itself (no Google Fonts request), so every machine sees the same face.
+import "@fontsource-variable/figtree";
 import "./globals.css";
 
 export const metadata: Metadata = {

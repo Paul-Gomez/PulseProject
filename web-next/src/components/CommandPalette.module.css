@@ -126,3 +126,10 @@
     transform: none;
   }
 }
+
+/* Reduced motion: the palette fades in without sliding. */
+@media (prefers-reduced-motion: reduce) {
+  .panel {
+    animation: fade 0.15s ease;
+  }
+}

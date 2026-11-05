@@ -49,7 +49,7 @@ html,
 body {
   margin: 0;
   height: 100%;
-  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-family: "Figtree Variable", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   font-size: 15px;
   line-height: 1.45;
   background: var(--bg);
@@ -259,11 +259,38 @@ h2 {
   }
 }
 
+/*
+ * Reduced motion keeps the feedback and drops the movement: entrances and the badge still
+ * fade in so a change is noticed, but nothing slides, scales or springs. Colour and opacity
+ * transitions stay; transform ones are removed so switches and buttons change in place.
+ */
 @media (prefers-reduced-motion: reduce) {
+  @keyframes enter {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes pop {
+    from {
+      opacity: 0.4;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
   *,
   *::before,
   *::after {
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
+    transition-property: color, background-color, border-color, opacity, box-shadow !important;
+    scroll-behavior: auto !important;
+  }
+
+  .skeleton {
+    animation: none;
   }
 }
